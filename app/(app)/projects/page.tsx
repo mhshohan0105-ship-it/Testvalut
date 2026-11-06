@@ -56,7 +56,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           action={!showArchived && canCreate ? newProject : undefined}
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {projects.map((project, index) => (
             <div key={project.id} className="page-enter" style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}>
               <TiltCard>

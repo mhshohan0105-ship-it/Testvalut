@@ -213,7 +213,7 @@ async function ResultsTab({ caseId, cursor }: { caseId: string; cursor?: string 
             <GlassCard className="p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status={result.status} />
-                <span className="text-sm font-medium">{result.runCase.run.name}</span>
+                <Link href={`/runs/${result.runCase.run.id}`} className="text-sm font-medium hover:text-primary">{result.runCase.run.name}</Link>
                 {result.runCase.run.environment && <span className="text-xs text-muted-foreground">{result.runCase.run.environment}</span>}
               </div>
               <p className="mt-1.5 text-xs text-muted-foreground">

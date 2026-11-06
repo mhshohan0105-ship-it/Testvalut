@@ -269,6 +269,8 @@ model TestResult {
   actualResult   String?
   elapsedSeconds Int?
   defectRef      String?
+  /// Per-step marks recorded with this result: [{ order, status }].
+  stepResults    Json?
   createdById    String
   createdAt      DateTime   @default(now())
 
