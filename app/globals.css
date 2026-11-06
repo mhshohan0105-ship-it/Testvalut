@@ -371,7 +371,7 @@
 
 /* ---------- Motion ---------- */
 .page-enter {
-  animation: page-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 @keyframes page-enter {
   from {
@@ -385,10 +385,10 @@
 }
 
 .slide-next {
-  animation: slide-next 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: slide-next 200ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .slide-prev {
-  animation: slide-prev 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: slide-prev 200ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 @keyframes slide-next {
   from {
@@ -408,6 +408,86 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* The result card turning over. Only transform and opacity move, apart from the small check mark drawing itself. */
+.result-flip {
+  position: fixed;
+  inset-inline: 0;
+  top: 5rem;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  perspective: 1000px;
+  /* The fade lives here because opacity on the rotating element would flatten its 3D faces. */
+  animation: result-flip-fade 640ms ease-out both;
+}
+.result-flip-inner {
+  position: relative;
+  width: min(24rem, calc(100vw - 2rem));
+  height: 5.5rem;
+  transform-style: preserve-3d;
+  animation: result-flip 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.result-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-inline: 1.25rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  background: var(--popover);
+  box-shadow: var(--overlay-shadow);
+  backface-visibility: hidden;
+}
+.result-face-back {
+  transform: rotateY(180deg);
+}
+@keyframes result-flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  45%,
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+@keyframes result-flip-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  82% {
+    opacity: 1;
+  }
+}
+.result-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: check-draw 240ms 240ms ease-out forwards;
+}
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.result-shake {
+  animation: result-shake 300ms 260ms ease-in-out;
+}
+@keyframes result-shake {
+  25% {
+    transform: translate3d(-3px, 0, 0);
+  }
+  50% {
+    transform: translate3d(3px, 0, 0);
+  }
+  75% {
+    transform: translate3d(-2px, 0, 0);
   }
 }
 
@@ -449,10 +529,39 @@
   .slide-prev {
     animation-name: fade-only;
   }
+  .result-flip {
+    animation-name: result-fade;
+  }
+  .result-flip-inner {
+    animation: none;
+  }
+  .result-face:not(.result-face-back) {
+    display: none;
+  }
+  .result-face-back {
+    transform: none;
+  }
+  .result-check path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .result-shake {
+    animation: none;
+  }
   .sb-panel,
   .sb-pin,
   .sb-collapse-icon {
     transition: none;
+  }
+}
+@keyframes result-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
   }
 }
 @keyframes fade-only {

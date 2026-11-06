@@ -49,16 +49,17 @@ export default async function DashboardPage() {
       </GlassCard>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total cases" value={data.totalCases.toLocaleString("en-US")} hint="Across all projects" icon={ListChecks} />
-        <StatCard label="Active runs" value={String(data.activeRunCount)} hint="In progress now" icon={Activity} accent="var(--status-retest)" />
+        <StatCard label="Total cases" value={data.totalCases} hint="Across all projects" icon={ListChecks} />
+        <StatCard label="Active runs" value={data.activeRunCount} hint="In progress now" icon={Activity} accent="var(--status-retest)" />
         <StatCard
           label="Pass rate"
-          value={data.passRate === null ? "–" : `${data.passRate}%`}
+          value={data.passRate}
+          suffix="%"
           hint="Passed out of passed, failed and blocked"
           icon={CircleCheck}
           accent="var(--status-passed)"
         />
-        <StatCard label="Open failures" value={String(data.openFailures)} hint="Failed in active runs" icon={OctagonAlert} accent="var(--status-failed)" />
+        <StatCard label="Open failures" value={data.openFailures} hint="Failed in active runs" icon={OctagonAlert} accent="var(--status-failed)" />
       </div>
 
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-3">

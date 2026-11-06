@@ -33,7 +33,7 @@ export function TiltCard({ className, children }: { className?: string; children
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="[perspective:900px]">
+      <div className="h-full [perspective:900px]">
         <m.div
           onPointerMove={onPointerMove}
           onPointerLeave={onPointerLeave}

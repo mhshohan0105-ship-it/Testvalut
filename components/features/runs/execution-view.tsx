@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { caseLabel, formatDateTime, formatDuration } from "@/lib/utils/format";
 import { closeRun, recordResult } from "@/server/actions/runs";
 import type { RunCaseDetail } from "@/server/queries/runs";
+import { ResultFlip } from "./result-flip";
 import { RunProgress } from "./run-progress";
 
 type QueueItem = { id: string; status: TestStatus };
@@ -77,6 +78,7 @@ export function ExecutionView({
   const [finished, setFinished] = useState(false);
   const [details, setDetails] = useState<Record<string, RunCaseDetail>>({});
   const [failedLoad, setFailedLoad] = useState<string | null>(null);
+  const [flip, setFlip] = useState<{ key: number; status: ResultStatus; title: string; comment: string } | null>(null);
   const requested = useRef(new Set<string>());
   const openedAt = useRef(0);
 
@@ -139,6 +141,7 @@ export function ExecutionView({
     const nextQueue = queue.map((item) => (item.id === runCaseId ? { ...item, status } : item));
     setQueue(nextQueue);
     drafts.delete(runCaseId);
+    setFlip({ key: Date.now(), status, title: detail?.testCase.title ?? "", comment: draft.comment });
 
     // Next untested case after this one, wrapping around to any that were skipped over.
     const after = [...nextQueue.slice(index + 1), ...nextQueue.slice(0, index)];
@@ -214,6 +217,7 @@ export function ExecutionView({
 
   return (
     <div className="flex min-h-dvh flex-col">
+      {flip && <ResultFlip key={flip.key} status={flip.status} title={flip.title} comment={flip.comment} onDone={() => setFlip(null)} />}
       <header className="sticky top-0 z-30 border-b border-(--glass-border) bg-(--topbar-surface) backdrop-blur-xl">
         <div className="flex h-14 items-center gap-3 px-3 md:px-6">
           <Button asChild variant="ghost" size="sm">
@@ -308,6 +312,24 @@ export function ExecutionView({
           )}
         </main>
       )}
+
+      {canExecute && current && detail && !finished && (
+        // On phones the buttons stay within reach of a thumb. This sits outside the sliding panel, whose transform would otherwise capture position: fixed.
+        <div className="glass-overlay fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-1.5 rounded-t-2xl p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden" role="group" aria-label="Set result">
+          {STATUS_BUTTONS.map(({ status: value, icon: Icon, className }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setStatus(value)}
+              aria-label={STATUS_LABELS[value]}
+              className={cn("flex h-13 flex-col items-center justify-center gap-0.5 rounded-xl border text-[11px] font-semibold active:scale-[0.97]", className)}
+            >
+              <Icon className="size-5" aria-hidden />
+              {STATUS_LABELS[value]}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -367,7 +389,7 @@ function CasePanel({
   }
 
   return (
-    <div className={cn("grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]", direction === "next" ? "slide-next" : "slide-prev")}>
+    <div className={cn("grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]", canExecute && "pb-20 lg:pb-0", direction === "next" ? "slide-next" : "slide-prev")}>
       <div className="min-w-0 space-y-4">
         <GlassCard className="p-5">
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -470,7 +492,7 @@ function CasePanel({
       <div className="space-y-4 lg:sticky lg:top-20 lg:h-fit">
         {canExecute && (
           <GlassCard className="space-y-3 p-4">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="hidden grid-cols-2 gap-2 lg:grid">
               {STATUS_BUTTONS.map(({ status: value, key, icon: Icon, className }) => (
                 <button
                   key={value}
@@ -524,7 +546,7 @@ function CasePanel({
             Next <kbd className="font-mono text-xs opacity-70">J</kbd> <ChevronRight />
           </Button>
         </div>
-        {canExecute && <p className="text-center text-xs text-muted-foreground">Press C to comment, Esc to leave a field.</p>}
+        {canExecute && <p className="hidden text-center text-xs text-muted-foreground lg:block">Press C to comment, Esc to leave a field.</p>}
       </div>
     </div>
   );

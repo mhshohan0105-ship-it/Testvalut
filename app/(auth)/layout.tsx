@@ -1,3 +1,4 @@
+import { AuthVisual } from "@/components/features/three/auth-visual";
 import { LogoMark } from "@/components/layout/logo";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -14,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
       <div className="relative hidden items-center justify-center overflow-hidden lg:flex" aria-hidden>
         <div className="flex max-w-md flex-col items-center text-center">
-          <div className="orb-placeholder orb-float size-72" />
+          <AuthVisual />
           <p className="mt-14 text-3xl font-bold tracking-tight">
             Every test. <span className="text-gradient">One command center.</span>
           </p>

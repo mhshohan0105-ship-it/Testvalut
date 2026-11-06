@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/app-shell";
+import { GlobalShortcuts } from "@/components/layout/global-shortcuts";
 import { TopBar } from "@/components/layout/top-bar";
 import { requireUser } from "@/lib/auth/session";
 import { getAccessibleProjects, getActiveProject } from "@/server/queries/projects";
@@ -14,6 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       topBar={<TopBar user={user} projects={projects} activeProjectId={activeProject?.id ?? null} />}
     >
       {children}
+      <GlobalShortcuts />
     </AppShell>
   );
 }
