@@ -98,6 +98,33 @@ To skip the demo data, don't seed. The first person to sign up becomes the admin
 
 `DATABASE_URL` has to exist before the first build, because the build loads the database client.
 
+## Running it as a public demo
+
+Set these extra variables to turn a deployment into a shared demo anyone can try:
+
+| Variable | What it does |
+| --- | --- |
+| `NEXT_PUBLIC_DEMO_MODE` | Set to `true`. Adds a **Try the demo** button that signs visitors in to one shared account, with no sign-up |
+| `CRON_SECRET` | A long random value. Vercel Cron sends it to authorize the daily reset |
+| `SEED_PASSWORD` | Optional. Keeps your admin password the same after each reset. Without it, the admin password becomes random each time |
+
+**Only use demo mode on a deployment with its own database.** The daily reset deletes everything in that database and recreates the sample data.
+
+Then deploy, apply the migrations, and seed once with `NEXT_PUBLIC_DEMO_MODE=true` set, so the visitor account exists.
+
+In demo mode:
+
+- Sign-ups, file uploads, CSV import, password changes, archiving projects, changing project members and deleting sections are all off, and the server refuses them.
+- Visitors can delete at most 5 cases at a time.
+- Everything else works. Visitors share one account, so they see each other's changes until the reset.
+- `vercel.json` runs the reset at 03:00 UTC each day. To reset by hand:
+
+  ```bash
+  curl -H "Authorization: Bearer $CRON_SECRET" https://your-app.vercel.app/api/cron/reset-demo
+  ```
+
+Without demo mode, that route returns 404 and never touches your data.
+
 ## How it's organized
 
 | Folder | Contents |

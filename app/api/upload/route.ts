@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getProjectForRoute } from "@/lib/auth/project-access";
 import { limitFor, validateAttachment } from "@/lib/constants/attachments";
+import { DEMO_MODE } from "@/lib/demo";
 import { uploadPayloadSchema } from "@/lib/validations/attachment";
 
 class UploadRefused extends Error {
@@ -16,6 +17,7 @@ class UploadRefused extends Error {
 
 /** Issues a short-lived token for one file, so the browser can upload straight to Blob storage. */
 export async function POST(request: Request) {
+  if (DEMO_MODE) return NextResponse.json({ error: "File uploads are turned off in this demo." }, { status: 403 });
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return NextResponse.json({ error: "File uploads aren't set up yet. Add BLOB_READ_WRITE_TOKEN." }, { status: 503 });
   }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { UploadCloud, X } from "lucide-react";
 import { toast } from "sonner";
 import { ACCEPTED_FILES, resolveContentType, validateAttachment, type AttachmentView } from "@/lib/constants/attachments";
+import { DEMO_MODE } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/utils/compress-image";
 import { registerAttachment } from "@/server/actions/attachments";
@@ -99,7 +100,7 @@ export function FileUploader({
   }
 
   useEffect(() => {
-    if (!pasteTarget) return;
+    if (!pasteTarget || DEMO_MODE) return;
     function onPaste(event: ClipboardEvent) {
       const files = [...(event.clipboardData?.files ?? [])];
       if (files.length === 0) return;
@@ -110,6 +111,8 @@ export function FileUploader({
     return () => window.removeEventListener("paste", onPaste);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the listener only reads stable props through addFiles
   }, [pasteTarget, projectId, testCaseId]);
+
+  if (DEMO_MODE) return <p className="rounded-xl border border-dashed border-border px-4 py-3 text-center text-sm text-muted-foreground">File uploads are turned off in this demo.</p>;
 
   return (
     <div>

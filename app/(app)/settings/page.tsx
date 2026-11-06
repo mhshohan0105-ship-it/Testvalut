@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { hasPermission } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
+import { DEMO_MODE } from "@/lib/demo";
 import { STORAGE_LIMIT_BYTES, STORAGE_WARNING_RATIO, formatBytes } from "@/lib/constants/attachments";
 import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -55,10 +56,12 @@ export default async function SettingsPage() {
           </div>
         )}
       </GlassCard>
-      <GlassCard className="mt-5 max-w-2xl p-5">
-        <h2 className="font-semibold tracking-tight">Your password</h2>
-        <LazyChangePassword />
-      </GlassCard>
+      {!DEMO_MODE && (
+        <GlassCard className="mt-5 max-w-2xl p-5">
+          <h2 className="font-semibold tracking-tight">Your password</h2>
+          <LazyChangePassword />
+        </GlassCard>
+      )}
     </>
   );
 }

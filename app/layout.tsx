@@ -7,9 +7,21 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
+const DESCRIPTION = "Test management for teams that ship: cases, runs, results, bugs and reports.";
+
+function siteUrl() {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  return "http://localhost:3000";
+}
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
   title: { default: "TestVault", template: "%s · TestVault" },
-  description: "Test management for teams that ship: cases, runs, results and reports.",
+  description: DESCRIPTION,
+  // Fixed here, so a link shared on social media reads the same whichever page it lands on.
+  openGraph: { title: "TestVault: test management, beautifully fast", description: DESCRIPTION, type: "website", siteName: "TestVault" },
+  twitter: { card: "summary_large_image", title: "TestVault: test management, beautifully fast", description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {

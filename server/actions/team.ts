@@ -8,7 +8,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { Role } from "@/generated/prisma/enums";
 import { requirePermission, requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { ActionError, runAction } from "@/lib/utils/action";
+import { ActionError, assertNotDemo, runAction } from "@/lib/utils/action";
 import { addUserSchema, changePasswordSchema, type AddUserInput, type ChangePasswordInput } from "@/lib/validations/team";
 
 /** Workspaces must always keep someone who can manage them. */
@@ -64,6 +64,7 @@ export async function setUserActive(userId: string, active: boolean) {
 export async function changeOwnPassword(input: ChangePasswordInput) {
   return runAction(async () => {
     const user = await requireUser();
+    assertNotDemo();
     const { currentPassword, newPassword } = changePasswordSchema.parse(input);
     const record = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { passwordHash: true } });
     if (!(await bcrypt.compare(currentPassword, record.passwordHash))) throw new ActionError("Your current password isn't right.");

@@ -8,7 +8,7 @@ import { requirePermission } from "@/lib/auth/session";
 import { validateAttachment } from "@/lib/constants/attachments";
 import { ATTACHMENT_SELECT, isOwnBlobUrl, removeAttachments } from "@/lib/db/attachments";
 import { db } from "@/lib/db";
-import { ActionError, runAction } from "@/lib/utils/action";
+import { ActionError, assertNotDemo, runAction } from "@/lib/utils/action";
 import { registerAttachmentSchema, type RegisterAttachmentInput } from "@/lib/validations/attachment";
 
 /** Records a file the browser just uploaded. The URL is checked, so only this store's files can be attached. */
@@ -16,6 +16,7 @@ export async function registerAttachment(input: RegisterAttachmentInput) {
   return runAction(async () => {
     const values = registerAttachmentSchema.parse(input);
     const { user } = await requireProjectAccess(values.projectId, "attachment:upload");
+    assertNotDemo("File uploads are turned off in this demo.");
 
     const invalid = validateAttachment(values.mimeType, values.sizeBytes);
     if (invalid) throw new ActionError(invalid);

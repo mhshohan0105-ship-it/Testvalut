@@ -1,8 +1,11 @@
 import { AuthVisual } from "@/components/features/three/auth-visual";
+import { DemoBanner } from "@/components/layout/demo-banner";
 import { LogoMark } from "@/components/layout/logo";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
+    <>
+    <DemoBanner />
     <main className="grid min-h-dvh lg:grid-cols-2">
       <div className="flex flex-col justify-center px-4 py-10 sm:px-8">
         <div className="mx-auto w-full max-w-md">
@@ -23,5 +26,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
     </main>
+    </>
   );
 }

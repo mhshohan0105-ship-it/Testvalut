@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronsLeft } from "lucide-react";
+import { DemoBanner } from "./demo-banner";
 import { LogoMark } from "./logo";
 import { CHIP_CLASS, NavList, ROW_CLASS } from "./nav-list";
 
@@ -57,6 +58,7 @@ export function AppShell({
       </aside>
 
       <div className="shell-main flex min-h-dvh flex-col">
+        <DemoBanner />
         {topBar}
         <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8">
           {children}

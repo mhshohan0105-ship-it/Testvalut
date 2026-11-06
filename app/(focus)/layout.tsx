@@ -1,3 +1,4 @@
+import { DemoBanner } from "@/components/layout/demo-banner";
 import { GlobalShortcuts } from "@/components/layout/global-shortcuts";
 import { requireUser } from "@/lib/auth/session";
 
@@ -6,6 +7,7 @@ export default async function FocusLayout({ children }: { children: React.ReactN
   await requireUser();
   return (
     <>
+      <DemoBanner />
       {children}
       <GlobalShortcuts />
     </>

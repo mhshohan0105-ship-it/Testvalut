@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
+import { DEMO_EMAIL, DEMO_MODE } from "@/lib/demo";
 import { loginSchema } from "@/lib/validations/auth";
 import { authConfig } from "./config";
 import { clearLoginFailures, isLoginLocked, recordLoginFailure } from "./login-attempts";
@@ -15,6 +16,19 @@ export class TooManyAttempts extends CredentialsSignin {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
+    // Only exists on a demo deployment, where it signs anyone in to the shared visitor account.
+    ...(DEMO_MODE
+      ? [
+          Credentials({
+            id: "demo",
+            credentials: {},
+            async authorize() {
+              const user = await db.user.findUnique({ where: { email: DEMO_EMAIL }, select: { id: true, name: true, email: true, role: true } });
+              return user;
+            },
+          }),
+        ]
+      : []),
     Credentials({
       credentials: { email: {}, password: {} },
       async authorize(credentials) {

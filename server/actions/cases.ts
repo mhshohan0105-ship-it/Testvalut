@@ -8,7 +8,8 @@ import { requireProjectAccess } from "@/lib/auth/project-access";
 import { db } from "@/lib/db";
 import { logActivity } from "@/lib/db/activity";
 import { removeAttachmentsOfCases } from "@/lib/db/attachments";
-import { ActionError, runAction } from "@/lib/utils/action";
+import { DEMO_BULK_DELETE_LIMIT, DEMO_MODE } from "@/lib/demo";
+import { ActionError, assertNotDemo, runAction } from "@/lib/utils/action";
 import { normalizeRichText, plainToRichText } from "@/lib/utils/sanitize";
 import { sectionPath } from "@/lib/utils/tree";
 import {
@@ -253,6 +254,7 @@ export async function bulkDeleteCases(input: { projectId: string; caseIds: strin
   return runAction(async () => {
     const { projectId, caseIds } = bulkCasesSchema.parse(input);
     const { user } = await requireProjectAccess(projectId, "case:manage");
+    if (DEMO_MODE && caseIds.length > DEMO_BULK_DELETE_LIMIT) throw new ActionError(`In this demo you can delete up to ${DEMO_BULK_DELETE_LIMIT} cases at once.`);
     await removeAttachmentsOfCases(await ownedCaseIds(db, projectId, caseIds));
     const { count } = await db.testCase.deleteMany({ where: { id: { in: caseIds }, projectId } });
     await logActivity(db, { projectId, userId: user.id, action: "deleted", entityType: "case", entityId: projectId, meta: { count } });
@@ -290,6 +292,7 @@ const DEFAULT_IMPORT_SECTION = "Imported";
 export async function importCases(projectId: string, input: ImportRow[]) {
   return runAction(async () => {
     const { user } = await requireProjectAccess(projectId, "case:manage");
+    assertNotDemo();
     const rows = z.array(importRowSchema).min(1).max(500, "Import at most 500 rows per batch").parse(input);
     const sections = await getSections(projectId);
 

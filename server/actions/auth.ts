@@ -5,6 +5,7 @@ import { AuthError, CredentialsSignin } from "next-auth";
 import { Prisma } from "@/generated/prisma/client";
 import { signIn, signOut } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { DEMO_MODE } from "@/lib/demo";
 import { safeCallbackUrl } from "@/lib/utils";
 import { loginSchema, signupSchema, type LoginInput, type SignupInput } from "@/lib/validations/auth";
 
@@ -33,6 +34,7 @@ export async function login(input: LoginInput, callbackUrl?: string): Promise<Au
 }
 
 export async function signup(input: SignupInput): Promise<AuthResult> {
+  if (DEMO_MODE) return { ok: false, error: "Sign-ups are turned off in this demo." };
   const parsed = signupSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Please check the form and try again." };
   const { name, email, password } = parsed.data;
@@ -59,6 +61,17 @@ export async function signup(input: SignupInput): Promise<AuthResult> {
   }
 
   return signInAndRedirect(email, password, "/dashboard");
+}
+
+export async function demoLogin(): Promise<AuthResult> {
+  if (!DEMO_MODE) return { ok: false, error: "The demo isn't available here." };
+  try {
+    await signIn("demo", { redirectTo: "/dashboard" });
+    return { ok: false, error: "Could not start the demo. Please try again." };
+  } catch (error) {
+    if (error instanceof AuthError) return { ok: false, error: "The demo is being reset. Please try again in a minute." };
+    throw error;
+  }
 }
 
 export async function logout() {

@@ -10,6 +10,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { hasPermission } from "@/lib/auth/permissions";
 import { readableTextOn } from "@/lib/utils";
 import { getProjectForPage } from "@/lib/auth/project-access";
+import { DEMO_MODE } from "@/lib/demo";
 import { describeActivity } from "@/lib/utils/activity";
 import { formatDateTime } from "@/lib/utils/format";
 import { openProjectCases } from "@/server/actions/projects";
@@ -33,7 +34,7 @@ export default async function ProjectPage({
 
   const [members, candidates, activity] = await Promise.all([
     getProjectMembers(projectId),
-    canManage ? getUsersOutsideProject(projectId) : Promise.resolve([]),
+    canManage && !DEMO_MODE ? getUsersOutsideProject(projectId) : Promise.resolve([]),
     getProjectActivity(projectId, activityCursor),
   ]);
 
@@ -54,7 +55,7 @@ export default async function ProjectPage({
           {project.description && <p className="mt-1.5 max-w-2xl text-muted-foreground">{project.description}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {hasPermission(role, "project:manage") && <ArchiveButton projectId={project.id} archived={project.archived} name={project.name} />}
+          {hasPermission(role, "project:manage") && !DEMO_MODE && <ArchiveButton projectId={project.id} archived={project.archived} name={project.name} />}
           {canManage && (
             <ProjectFormButton
               project={{ id: project.id, name: project.name, key: project.key, description: project.description ?? "", color: project.color }}
@@ -76,7 +77,7 @@ export default async function ProjectPage({
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[3fr_2fr]">
-        <MembersPanel projectId={project.id} members={members} candidates={candidates} canManage={canManage} />
+        <MembersPanel projectId={project.id} members={members} candidates={candidates} canManage={canManage && !DEMO_MODE} />
         <GlassCard className="p-5">
           <h2 className="font-semibold tracking-tight">Activity</h2>
           <ul className="mt-3 space-y-3">

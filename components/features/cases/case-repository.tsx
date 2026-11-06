@@ -40,6 +40,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Priority } from "@/generated/prisma/enums";
 import { CASE_TYPES, CASE_TYPE_LABELS, PRIORITIES, PRIORITY_LABELS } from "@/lib/constants/testing";
+import { DEMO_MODE } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 import { caseLabel, formatDate } from "@/lib/utils/format";
 import { sectionOptions, sectionSubtreeIds, type SectionItem } from "@/lib/utils/tree";
@@ -288,9 +289,11 @@ export function CaseRepository({
           </Button>
           {canManage && (
             <>
-              <Button variant="outline" onClick={() => setDialog("import")}>
-                <Upload /> Import
-              </Button>
+              {!DEMO_MODE && (
+                <Button variant="outline" onClick={() => setDialog("import")}>
+                  <Upload /> Import
+                </Button>
+              )}
               <Button asChild>
                 <Link href={newCaseHref}>
                   <Plus /> New case
