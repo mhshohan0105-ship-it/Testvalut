@@ -108,7 +108,8 @@ export function ExecutionView({
   // Loads the case on screen and the likely next ones, so moving forward shows no loading state.
   useEffect(() => {
     if (index < 0) return;
-    const nearby = [...queue.slice(index, index + 3), ...queue.slice(Math.max(index - 1, 0), index)];
+    const nextUntested = [...queue.slice(index + 1), ...queue.slice(0, index)].filter((item) => item.status === "UNTESTED").slice(0, 2);
+    const nearby = [...queue.slice(index, index + 2), ...queue.slice(Math.max(index - 1, 0), index), ...nextUntested];
     // eslint-disable-next-line react-hooks/set-state-in-effect -- state only changes after the fetch resolves
     for (const item of nearby) void loadDetail(item.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts to moving between cases only

@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Archive, FolderKanban, ListChecks, Plus, Users } from "lucide-react";
 import { PassRateRing } from "@/components/features/projects/pass-rate-ring";
-import { ProjectFormDialog } from "@/components/features/projects/project-form-dialog";
+import { ProjectFormButton } from "@/components/features/projects/project-form-button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { hasPermission } from "@/lib/auth/permissions";
+import { readableTextOn } from "@/lib/utils";
 import { requireUser } from "@/lib/auth/session";
 import { getProjectCards } from "@/server/queries/projects";
 
@@ -19,7 +20,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const projects = await getProjectCards(user, showArchived);
   const canCreate = hasPermission(user.role, "project:manage");
   const newProject = (
-    <ProjectFormDialog
+    <ProjectFormButton
       trigger={
         <Button>
           <Plus /> New project
@@ -64,7 +65,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <span className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: project.color }} aria-hidden />
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <span className="rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold text-white" style={{ backgroundColor: project.color }}>
+                      <span className="rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold" style={{ backgroundColor: project.color, color: readableTextOn(project.color) }}>
                         {project.key}
                       </span>
                       <h2 className="mt-2.5 truncate text-lg font-semibold tracking-tight">{project.name}</h2>

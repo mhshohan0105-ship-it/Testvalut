@@ -372,7 +372,7 @@ function TreeRow({
       <button
         type="button"
         onClick={onToggle}
-        className={cn("flex size-5 shrink-0 items-center justify-center rounded", !hasChildren && "invisible")}
+        className={cn("flex size-6 shrink-0 items-center justify-center rounded", !hasChildren && "invisible")}
         aria-label={expanded ? `Collapse ${item.name}` : `Expand ${item.name}`}
         aria-expanded={expanded}
         tabIndex={hasChildren ? 0 : -1}

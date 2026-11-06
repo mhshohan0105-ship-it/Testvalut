@@ -1,7 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { Prisma } from "@/generated/prisma/client";
 import { signIn, signOut } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -17,6 +17,9 @@ async function signInAndRedirect(email: string, password: string, redirectTo: st
     return { ok: false, error: "Could not sign in. Please try again." };
   } catch (error) {
     if (error instanceof AuthError) {
+      if (error instanceof CredentialsSignin && error.code === "too_many_attempts") {
+        return { ok: false, error: "Too many failed attempts. Please wait 15 minutes and try again." };
+      }
       return { ok: false, error: "That email and password don't match an active account." };
     }
     throw error;

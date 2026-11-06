@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarClock, CircleCheck, Flag, Plus } from "lucide-react";
-import { MilestoneFormDialog } from "@/components/features/milestones/milestone-form-dialog";
+import { MilestoneFormButton } from "@/components/features/milestones/milestone-form-button";
 import { RunProgress } from "@/components/features/runs/run-progress";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export default async function MilestonesPage() {
   const canManage = access ? hasPermission(access.role, "milestone:manage") : false;
   const milestones = await getMilestones(project.id);
   const create = (
-    <MilestoneFormDialog
+    <MilestoneFormButton
       projectId={project.id}
       trigger={
         <Button>

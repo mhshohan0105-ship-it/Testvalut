@@ -30,3 +30,11 @@ export function safeCallbackUrl(value: unknown, fallback = "/dashboard") {
   if (!path.startsWith("/") || path.startsWith("//") || path.startsWith("/\\")) return fallback;
   return path;
 }
+
+/** Black or white, whichever is easier to read on a project's color. */
+export function readableTextOn(hex: string) {
+  const channels = [1, 3, 5].map((start) => Number.parseInt(hex.slice(start, start + 2), 16) / 255);
+  const [r = 0, g = 0, b = 0] = channels.map((value) => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 0.179 ? "#0a0b1e" : "#ffffff";
+}

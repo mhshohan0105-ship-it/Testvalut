@@ -1,43 +1,34 @@
 "use client";
 
-import Link from "next/link";
-import { LogOut, Settings } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { logout } from "@/server/actions/auth";
+import { useState } from "react";
 import { initials } from "@/lib/utils";
 
+export const USER_TRIGGER_CLASS = "btn-gradient flex size-9 items-center justify-center rounded-full text-xs font-semibold text-white";
+
+/** Starts with the visible initials, so voice-control users can say what they see. */
+export function userMenuLabel(name: string) {
+  return `${initials(name)}, account menu for ${name}`;
+}
+
+const loadMenu = () => import("./user-menu-dropdown").then((mod) => mod.UserMenuDropdown);
+type Menu = Awaited<ReturnType<typeof loadMenu>>;
+
 export function UserMenu({ name, email, roleLabel }: { name: string; email: string; roleLabel: string }) {
+  const [Menu, setMenu] = useState<Menu | null>(null);
+
+  if (Menu) return <Menu name={name} email={email} roleLabel={roleLabel} />;
+
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger
-        className="btn-gradient flex size-9 items-center justify-center rounded-full text-xs font-semibold text-white"
-        aria-label={`Account menu for ${name}`}
-      >
-        {initials(name)}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="font-normal">
-          <p className="truncate text-sm font-medium">{name}</p>
-          <p className="truncate text-xs text-muted-foreground">{email}</p>
-          <p className="mt-1.5 text-xs font-medium text-primary">{roleLabel}</p>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/settings">
-            <Settings /> Settings
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => void logout()}>
-          <LogOut /> Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <button
+      type="button"
+      aria-haspopup="menu"
+      aria-label={userMenuLabel(name)}
+      className={USER_TRIGGER_CLASS}
+      onPointerEnter={() => void loadMenu()}
+      onFocus={() => void loadMenu()}
+      onClick={() => void loadMenu().then((loaded) => setMenu(() => loaded))}
+    >
+      {initials(name)}
+    </button>
   );
 }

@@ -226,7 +226,8 @@ export function RunOverview({
       </GlassCard>
 
       <GlassCard className="relative overflow-hidden">
-        <div role="table" aria-label="Cases in this run" aria-rowcount={total + 1} className="flex h-[calc(100dvh-24rem)] min-h-96 flex-col">
+        <div className="flex h-[calc(100dvh-24rem)] min-h-96 flex-col">
+          <div role="table" aria-label="Cases in this run" aria-rowcount={total + 1} className="flex min-h-0 flex-1 flex-col">
           <div role="row" className={cn(GRID, "h-10 shrink-0 border-b border-border px-2 text-xs font-medium text-muted-foreground")}>
             <div role="columnheader" className="flex justify-center">
               <input
@@ -246,6 +247,7 @@ export function RunOverview({
           </div>
           <div
             ref={scrollRef}
+            role="presentation"
             className="min-h-0 flex-1 overflow-y-auto"
             onScroll={(event) => {
               const element = event.currentTarget;
@@ -302,6 +304,7 @@ export function RunOverview({
                 })}
               </div>
             )}
+          </div>
           </div>
           <div className="flex h-9 shrink-0 items-center justify-between border-t border-border px-4 text-xs text-muted-foreground">
             <span className="tabular-nums" aria-live="polite">{total.toLocaleString("en-US")} {total === 1 ? "case" : "cases"}</span>

@@ -327,6 +327,15 @@ model Comment {
   @@index([authorId])
 }
 
+/// Recent failed sign-ins, for rate limiting. Rows are removed on success or once they age out.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}
+
 model ActivityLog {
   id         String   @id @default(cuid())
   projectId  String

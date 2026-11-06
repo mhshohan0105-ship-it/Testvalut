@@ -34,7 +34,7 @@ export function SearchButton() {
         type="button"
         onClick={show}
         className="glass flex h-9 items-center gap-2 rounded-xl px-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground sm:w-64 sm:px-3"
-        aria-label="Search and commands"
+        aria-label="Search or jump to… Ctrl K"
       >
         <Search className="size-4 shrink-0" aria-hidden />
         <span className="hidden sm:inline">Search or jump to…</span>

@@ -4,10 +4,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ListChecks, Pencil } from "lucide-react";
 import { ArchiveButton } from "@/components/features/projects/archive-button";
 import { MembersPanel } from "@/components/features/projects/members-panel";
-import { ProjectFormDialog } from "@/components/features/projects/project-form-dialog";
+import { ProjectFormButton } from "@/components/features/projects/project-form-button";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { hasPermission } from "@/lib/auth/permissions";
+import { readableTextOn } from "@/lib/utils";
 import { getProjectForPage } from "@/lib/auth/project-access";
 import { describeActivity } from "@/lib/utils/activity";
 import { formatDateTime } from "@/lib/utils/format";
@@ -44,7 +45,7 @@ export default async function ProjectPage({
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
-            <span className="rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold text-white" style={{ backgroundColor: project.color }}>
+            <span className="rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold" style={{ backgroundColor: project.color, color: readableTextOn(project.color) }}>
               {project.key}
             </span>
             {project.archived && <span className="rounded-md border px-1.5 py-0.5 text-xs text-muted-foreground">Archived</span>}
@@ -55,7 +56,7 @@ export default async function ProjectPage({
         <div className="flex flex-wrap items-center gap-2">
           {hasPermission(role, "project:manage") && <ArchiveButton projectId={project.id} archived={project.archived} name={project.name} />}
           {canManage && (
-            <ProjectFormDialog
+            <ProjectFormButton
               project={{ id: project.id, name: project.name, key: project.key, description: project.description ?? "", color: project.color }}
               trigger={
                 <Button variant="outline">

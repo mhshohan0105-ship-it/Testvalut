@@ -1,55 +1,52 @@
 "use client";
 
-import { useState } from "react";
-import { LazyMotion, domAnimation, m, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-
-const MAX_TILT = 8;
-const SPRING = { stiffness: 260, damping: 26, mass: 0.6 };
+import type { TiltEngine } from "./tilt-engine";
 
 export function TiltCard({ className, children }: { className?: string; children: React.ReactNode }) {
-  const reducedMotion = useReducedMotion();
-  const [shine, setShine] = useState(false);
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(pointerY, [-0.5, 0.5], [MAX_TILT, -MAX_TILT]), SPRING);
-  const rotateY = useSpring(useTransform(pointerX, [-0.5, 0.5], [-MAX_TILT, MAX_TILT]), SPRING);
-  const shineX = useTransform(pointerX, [-0.5, 0.5], ["-50%", "50%"]);
-  const shineY = useTransform(pointerY, [-0.5, 0.5], ["-50%", "50%"]);
+  const card = useRef<HTMLDivElement>(null);
+  const shine = useRef<HTMLSpanElement>(null);
+  const engine = useRef<TiltEngine | null>(null);
+  const requested = useRef(false);
+  const pointer = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => () => engine.current?.destroy(), []);
+
+  function trackPointer(event: React.PointerEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    pointer.current = { x: (event.clientX - rect.left) / rect.width - 0.5, y: (event.clientY - rect.top) / rect.height - 0.5 };
+  }
+
+  function onPointerEnter(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse" || requested.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    requested.current = true;
+    trackPointer(event);
+    void import("./tilt-engine").then(({ createTilt }) => {
+      if (!card.current || !shine.current) return;
+      engine.current = createTilt(card.current, shine.current);
+      if (pointer.current) engine.current.move(pointer.current.x, pointer.current.y);
+    });
+  }
 
   function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse" || reducedMotion) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    pointerX.set((event.clientX - rect.left) / rect.width - 0.5);
-    pointerY.set((event.clientY - rect.top) / rect.height - 0.5);
-    setShine(true);
+    if (event.pointerType !== "mouse") return;
+    trackPointer(event);
+    if (pointer.current) engine.current?.move(pointer.current.x, pointer.current.y);
   }
 
   function onPointerLeave() {
-    pointerX.set(0);
-    pointerY.set(0);
-    setShine(false);
+    pointer.current = null;
+    engine.current?.leave();
   }
 
   return (
-    <LazyMotion features={domAnimation}>
-      <div className="h-full [perspective:900px]">
-        <m.div
-          onPointerMove={onPointerMove}
-          onPointerLeave={onPointerLeave}
-          style={reducedMotion ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
-          whileHover={reducedMotion ? undefined : { scale: 1.02 }}
-          transition={{ type: "spring", ...SPRING }}
-          className={cn("glass relative overflow-hidden rounded-2xl", className)}
-        >
-          {children}
-          <m.span
-            aria-hidden
-            style={{ x: shineX, y: shineY, opacity: shine ? 1 : 0 }}
-            className="tilt-shine pointer-events-none absolute inset-0 scale-150"
-          />
-        </m.div>
+    <div className="h-full [perspective:900px]">
+      <div ref={card} onPointerEnter={onPointerEnter} onPointerMove={onPointerMove} onPointerLeave={onPointerLeave} className={cn("glass relative overflow-hidden rounded-2xl", className)}>
+        {children}
+        <span ref={shine} aria-hidden className="tilt-shine pointer-events-none absolute inset-0 opacity-0" />
       </div>
-    </LazyMotion>
+    </div>
   );
 }

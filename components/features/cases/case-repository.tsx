@@ -360,7 +360,8 @@ export function CaseRepository({
           </div>
 
           <GlassCard className="relative overflow-hidden">
-            <div role="table" aria-label="Test cases" aria-rowcount={total + 1} className="flex h-[calc(100dvh-17rem)] min-h-96 flex-col">
+            <div className="flex h-[calc(100dvh-17rem)] min-h-96 flex-col">
+              <div role="table" aria-label="Test cases" aria-rowcount={total + 1} className="flex min-h-0 flex-1 flex-col">
               <div role="row" className={cn(GRID, "h-10 shrink-0 border-b border-border px-2 text-xs font-medium text-muted-foreground")}>
                 <div role="columnheader" className="flex justify-center">
                   <input
@@ -379,7 +380,7 @@ export function CaseRepository({
                 <SortHeader label="Updated" field="updatedAt" query={query} onSort={toggleSort} className="hidden xl:block" />
               </div>
 
-              <div ref={scrollRef} onScroll={onScroll} className={cn("min-h-0 flex-1 overflow-y-auto transition-opacity duration-150", loading && "opacity-60")}>
+              <div ref={scrollRef} role="presentation" onScroll={onScroll} className={cn("min-h-0 flex-1 overflow-y-auto transition-opacity duration-150", loading && "opacity-60")}>
                 {rows.length === 0 && !loading ? (
                   <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
                     <ListChecks className="size-8 text-primary" aria-hidden />
@@ -449,6 +450,7 @@ export function CaseRepository({
                 )}
               </div>
 
+              </div>
               <div className="flex h-9 shrink-0 items-center justify-between border-t border-border px-4 text-xs text-muted-foreground">
                 <span className="tabular-nums" aria-live="polite">
                   {total.toLocaleString("en-US")} {total === 1 ? "case" : "cases"}

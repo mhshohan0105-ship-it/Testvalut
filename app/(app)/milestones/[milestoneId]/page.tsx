@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { MilestoneActions } from "@/components/features/milestones/milestone-actions";
-import { MilestoneFormDialog } from "@/components/features/milestones/milestone-form-dialog";
+import { MilestoneFormButton } from "@/components/features/milestones/milestone-form-button";
 import { RunProgress } from "@/components/features/runs/run-progress";
 import { StatusBadge } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ export default async function MilestonePage({ params }: { params: Promise<{ mile
         {canManage && (
           <div className="flex flex-wrap gap-2">
             <MilestoneActions id={milestone.id} name={milestone.name} completed={milestone.completed} />
-            <MilestoneFormDialog
+            <MilestoneFormButton
               projectId={milestone.projectId}
               milestone={{
                 id: milestone.id,

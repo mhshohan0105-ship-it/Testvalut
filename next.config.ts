@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   devIndicators: { position: "bottom-right" },
   experimental: {
-    optimizePackageImports: ["lucide-react", "motion", "recharts"],
+    optimizePackageImports: ["lucide-react", "motion", "recharts", "radix-ui"],
     serverActions: { bodySizeLimit: "4mb" },
   },
   images: {

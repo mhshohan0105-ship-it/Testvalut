@@ -18,6 +18,7 @@ function createRandom(seed: number) {
 }
 
 async function wipe() {
+  await db.loginAttempt.deleteMany();
   await db.attachment.deleteMany();
   await db.comment.deleteMany();
   await db.testResult.deleteMany();
