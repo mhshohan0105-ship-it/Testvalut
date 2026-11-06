@@ -1,0 +1,18 @@
+node_modules/
+.next/
+out/
+build/
+coverage/
+generated/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+
+# Secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+
+npm-debug.log*
+.DS_Store
+Thumbs.db

@@ -1,0 +1,340 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  LEAD
+  TESTER
+  VIEWER
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum CaseType {
+  FUNCTIONAL
+  REGRESSION
+  SMOKE
+  UI
+  API
+  PERFORMANCE
+  SECURITY
+  OTHER
+}
+
+enum RunStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum TestStatus {
+  PASSED
+  FAILED
+  BLOCKED
+  RETEST
+  UNTESTED
+  SKIPPED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  avatarUrl     String?
+  role          Role      @default(VIEWER)
+  deactivatedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  projectsCreated  Project[]         @relation("ProjectCreator")
+  memberships      ProjectMember[]
+  casesCreated     TestCase[]        @relation("CaseCreator")
+  casesUpdated     TestCase[]        @relation("CaseUpdater")
+  caseVersions     TestCaseVersion[]
+  runsCreated      TestRun[]         @relation("RunCreator")
+  runsAssigned     TestRun[]         @relation("RunAssignee")
+  runCasesAssigned TestRunCase[]
+  results          TestResult[]
+  attachments      Attachment[]
+  comments         Comment[]
+  activity         ActivityLog[]
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  key            String   @unique
+  color          String   @default("#7C3AED")
+  archived       Boolean  @default(false)
+  /// Next value for TestCase.caseNumber. Incremented atomically when a case is created.
+  nextCaseNumber Int      @default(1)
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  createdBy  User            @relation("ProjectCreator", fields: [createdById], references: [id])
+  members    ProjectMember[]
+  sections   Section[]
+  cases      TestCase[]
+  milestones Milestone[]
+  runs       TestRun[]
+  activity   ActivityLog[]
+
+  @@index([createdById])
+  @@index([archived, createdAt])
+}
+
+model ProjectMember {
+  projectId String
+  userId    String
+  role      Role     @default(TESTER)
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@index([userId])
+}
+
+model Section {
+  id        String   @id @default(cuid())
+  projectId String
+  parentId  String?
+  name      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   Section?   @relation("SectionTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Section[]  @relation("SectionTree")
+  cases    TestCase[]
+
+  @@index([projectId, parentId, order])
+  @@index([parentId])
+}
+
+model TestCase {
+  id            String   @id @default(cuid())
+  projectId     String
+  sectionId     String
+  caseNumber    Int
+  title         String
+  preconditions String?
+  priority      Priority @default(MEDIUM)
+  type          CaseType @default(FUNCTIONAL)
+  estimate      Int?
+  references    String?
+  tags          String[]
+  order         Int      @default(0)
+  createdById   String
+  updatedById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  section     Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdBy   User              @relation("CaseCreator", fields: [createdById], references: [id])
+  updatedBy   User              @relation("CaseUpdater", fields: [updatedById], references: [id])
+  steps       TestStep[]
+  versions    TestCaseVersion[]
+  runCases    TestRunCase[]
+  attachments Attachment[]
+  comments    Comment[]
+
+  @@unique([projectId, caseNumber])
+  @@index([projectId, sectionId, order])
+  @@index([projectId, priority])
+  @@index([projectId, type])
+  @@index([projectId, updatedAt])
+  @@index([sectionId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([tags], type: Gin)
+}
+
+model TestStep {
+  id             String @id @default(cuid())
+  testCaseId     String
+  order          Int
+  action         String
+  expectedResult String @default("")
+
+  testCase TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+
+  @@index([testCaseId, order])
+}
+
+model TestCaseVersion {
+  id          String   @id @default(cuid())
+  testCaseId  String
+  snapshot    Json
+  changedById String
+  createdAt   DateTime @default(now())
+
+  testCase  TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  changedBy User     @relation(fields: [changedById], references: [id])
+
+  @@index([testCaseId, createdAt])
+  @@index([changedById])
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  projectId   String
+  name        String
+  description String?
+  startDate   DateTime?
+  dueDate     DateTime?
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runs    TestRun[]
+
+  @@index([projectId, completed, dueDate])
+}
+
+model TestRun {
+  id           String    @id @default(cuid())
+  projectId    String
+  milestoneId  String?
+  name         String
+  description  String?
+  environment  String?
+  assignedToId String?
+  status       RunStatus @default(ACTIVE)
+  closedAt     DateTime?
+  createdById  String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone  Milestone?    @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  assignedTo User?         @relation("RunAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdBy  User          @relation("RunCreator", fields: [createdById], references: [id])
+  cases      TestRunCase[]
+
+  @@index([projectId, status, createdAt])
+  @@index([milestoneId])
+  @@index([assignedToId])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+model TestRunCase {
+  id            String     @id @default(cuid())
+  runId         String
+  testCaseId    String
+  assignedToId  String?
+  currentStatus TestStatus @default(UNTESTED)
+  order         Int        @default(0)
+  updatedAt     DateTime   @updatedAt
+
+  run        TestRun      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  testCase   TestCase     @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  assignedTo User?        @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  results    TestResult[]
+  comments   Comment[]
+
+  @@unique([runId, testCaseId])
+  @@index([runId, order])
+  @@index([runId, currentStatus])
+  @@index([assignedToId, currentStatus])
+  @@index([testCaseId])
+}
+
+model TestResult {
+  id             String     @id @default(cuid())
+  runCaseId      String
+  status         TestStatus
+  comment        String?
+  actualResult   String?
+  elapsedSeconds Int?
+  defectRef      String?
+  createdById    String
+  createdAt      DateTime   @default(now())
+
+  runCase     TestRunCase  @relation(fields: [runCaseId], references: [id], onDelete: Cascade)
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  attachments Attachment[]
+
+  @@index([runCaseId, createdAt])
+  @@index([status, createdAt])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  url          String
+  pathname     String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  uploadedById String
+  testCaseId   String?
+  testResultId String?
+  createdAt    DateTime @default(now())
+
+  uploadedBy User        @relation(fields: [uploadedById], references: [id])
+  testCase   TestCase?   @relation(fields: [testCaseId], references: [id], onDelete: SetNull)
+  testResult TestResult? @relation(fields: [testResultId], references: [id], onDelete: SetNull)
+
+  @@index([testCaseId])
+  @@index([testResultId])
+  @@index([uploadedById])
+  @@index([createdAt])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  testCaseId String?
+  runCaseId  String?
+  authorId   String
+  body       String
+  createdAt  DateTime @default(now())
+
+  testCase TestCase?    @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  runCase  TestRunCase? @relation(fields: [runCaseId], references: [id], onDelete: Cascade)
+  author   User         @relation(fields: [authorId], references: [id])
+
+  @@index([testCaseId, createdAt])
+  @@index([runCaseId, createdAt])
+  @@index([authorId])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  projectId  String
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([projectId, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
