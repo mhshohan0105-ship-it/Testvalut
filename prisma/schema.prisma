@@ -37,6 +37,13 @@ enum RunStatus {
   COMPLETED
 }
 
+enum BugStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
 enum TestStatus {
   PASSED
   FAILED
@@ -69,6 +76,8 @@ model User {
   attachments      Attachment[]
   comments         Comment[]
   activity         ActivityLog[]
+  bugsReported     Bug[]             @relation("BugReporter")
+  bugsAssigned     Bug[]             @relation("BugAssignee")
 
   @@index([role])
   @@index([createdAt])
@@ -83,6 +92,8 @@ model Project {
   archived       Boolean  @default(false)
   /// Next value for TestCase.caseNumber. Incremented atomically when a case is created.
   nextCaseNumber Int      @default(1)
+  /// Next value for Bug.bugNumber.
+  nextBugNumber  Int      @default(1)
   createdById    String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -95,6 +106,7 @@ model Project {
   runs        TestRun[]
   activity    ActivityLog[]
   attachments Attachment[]
+  bugs        Bug[]
 
   @@index([createdById])
   @@index([archived, createdAt])
@@ -158,6 +170,7 @@ model TestCase {
   runCases    TestRunCase[]
   attachments Attachment[]
   comments    Comment[]
+  bugs        Bug[]
 
   @@unique([projectId, caseNumber])
   @@index([projectId, sectionId, order])
@@ -194,6 +207,45 @@ model TestCaseVersion {
 
   @@index([testCaseId, createdAt])
   @@index([changedById])
+}
+
+model Bug {
+  id               String    @id @default(cuid())
+  projectId        String
+  bugNumber        Int
+  title            String
+  description      String?
+  stepsToReproduce String?
+  expectedResult   String?
+  actualResult     String?
+  severity         Priority  @default(MEDIUM)
+  status           BugStatus @default(OPEN)
+  environment      String?
+  externalRef      String?
+  assignedToId     String?
+  reportedById     String
+  testCaseId       String?
+  runCaseId        String?
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo  User?        @relation("BugAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  reportedBy  User         @relation("BugReporter", fields: [reportedById], references: [id])
+  testCase    TestCase?    @relation(fields: [testCaseId], references: [id], onDelete: SetNull)
+  runCase     TestRunCase? @relation(fields: [runCaseId], references: [id], onDelete: SetNull)
+  attachments Attachment[]
+  comments    Comment[]
+
+  @@unique([projectId, bugNumber])
+  @@index([projectId, status, createdAt])
+  @@index([projectId, severity])
+  @@index([assignedToId, status])
+  @@index([reportedById])
+  @@index([testCaseId])
+  @@index([runCaseId])
+  @@index([createdAt])
 }
 
 model Milestone {
@@ -254,6 +306,7 @@ model TestRunCase {
   assignedTo User?        @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
   results    TestResult[]
   comments   Comment[]
+  bugs       Bug[]
 
   @@unique([runId, testCaseId])
   @@index([runId, order])
@@ -296,16 +349,19 @@ model Attachment {
   uploadedById String
   testCaseId   String?
   testResultId String?
+  bugId        String?
   createdAt    DateTime @default(now())
 
   project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadedBy User        @relation(fields: [uploadedById], references: [id])
   testCase   TestCase?   @relation(fields: [testCaseId], references: [id], onDelete: SetNull)
   testResult TestResult? @relation(fields: [testResultId], references: [id], onDelete: SetNull)
+  bug        Bug?        @relation(fields: [bugId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
   @@index([testCaseId])
   @@index([testResultId])
+  @@index([bugId])
   @@index([uploadedById])
   @@index([createdAt])
 }
@@ -314,16 +370,19 @@ model Comment {
   id         String   @id @default(cuid())
   testCaseId String?
   runCaseId  String?
+  bugId      String?
   authorId   String
   body       String
   createdAt  DateTime @default(now())
 
   testCase TestCase?    @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
   runCase  TestRunCase? @relation(fields: [runCaseId], references: [id], onDelete: Cascade)
+  bug      Bug?         @relation(fields: [bugId], references: [id], onDelete: Cascade)
   author   User         @relation(fields: [authorId], references: [id])
 
   @@index([testCaseId, createdAt])
   @@index([runCaseId, createdAt])
+  @@index([bugId, createdAt])
   @@index([authorId])
 }
 

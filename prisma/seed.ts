@@ -21,6 +21,7 @@ async function wipe() {
   await db.loginAttempt.deleteMany();
   await db.attachment.deleteMany();
   await db.comment.deleteMany();
+  await db.bug.deleteMany();
   await db.testResult.deleteMany();
   await db.project.deleteMany();
   await db.user.deleteMany();
@@ -280,6 +281,41 @@ async function main() {
     },
     random,
   );
+
+  // Open a few realistic bugs from the regression run's failures.
+  const failed = await db.testRunCase.findMany({
+    where: { runId: regression.id, currentStatus: "FAILED" },
+    select: { id: true, testCaseId: true, testCase: { select: { title: true, priority: true } }, results: { select: { actualResult: true, defectRef: true }, orderBy: { createdAt: "desc" }, take: 1 } },
+    orderBy: { order: "asc" },
+    take: 6,
+  });
+  const bugStatuses = ["OPEN", "OPEN", "IN_PROGRESS", "OPEN", "RESOLVED", "CLOSED"] as const;
+  for (const [index, runCase] of failed.entries()) {
+    const status = bugStatuses[index] ?? "OPEN";
+    await db.bug.create({
+      data: {
+        projectId: commerce.id,
+        bugNumber: index + 1,
+        title: `${runCase.testCase.title} fails on Safari`,
+        description: "Found during the Sprint 24 regression pass.",
+        stepsToReproduce: "1. Open the storefront in Safari on staging\n2. Follow the linked test case",
+        expectedResult: "The case passes as written.",
+        actualResult: runCase.results[0]?.actualResult ?? null,
+        severity: runCase.testCase.priority,
+        status,
+        environment: "Safari / Staging",
+        externalRef: runCase.results[0]?.defectRef ?? null,
+        assignedToId: index % 2 === 0 ? liam.id : maya.id,
+        reportedById: maya.id,
+        testCaseId: runCase.testCaseId,
+        runCaseId: runCase.id,
+        resolvedAt: status === "RESOLVED" || status === "CLOSED" ? new Date(now - DAY) : null,
+        createdAt: new Date(now - (5 - Math.min(index, 4)) * DAY),
+      },
+      select: { id: true },
+    });
+  }
+  await db.project.update({ where: { id: commerce.id }, data: { nextBugNumber: failed.length + 1 } });
 
   await db.activityLog.createMany({
     data: [

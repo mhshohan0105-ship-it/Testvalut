@@ -115,8 +115,8 @@ Workspace admins can do everything in every project. Everyone else needs a proje
 | Role | Can do |
 | --- | --- |
 | Viewer | Read only |
-| Tester | Execute runs, record results, comment, upload attachments |
-| Lead | Everything above, plus manage cases, runs, milestones and projects |
+| Tester | Execute runs, record results, report and update bugs, comment, upload attachments |
+| Lead | Everything above, plus manage cases, runs, milestones and projects, and delete bugs |
 | Admin | Everything, including team management |
 
 ## Good to know

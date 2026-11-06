@@ -7,19 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/form-controls";
 import { initials } from "@/lib/utils";
 import { formatDateTime } from "@/lib/utils/format";
-import { addCaseComment, deleteCaseComment } from "@/server/actions/comments";
+import { addBugComment, addCaseComment, deleteCaseComment } from "@/server/actions/comments";
 
 type CommentView = { id: string; body: string; createdAt: string; authorId: string; authorName: string };
 type Change = { type: "add"; comment: CommentView } | { type: "remove"; id: string };
 
 export function CommentsPanel({
   caseId,
+  bugId,
   comments,
   currentUser,
   canComment,
   canModerate,
 }: {
-  caseId: string;
+  caseId?: string;
+  bugId?: string;
   comments: CommentView[];
   currentUser: { id: string; name: string };
   canComment: boolean;
@@ -38,7 +40,7 @@ export function CommentsPanel({
     input.value = "";
     startTransition(async () => {
       apply({ type: "add", comment: { id: `temp-${Date.now()}`, body, createdAt: new Date().toISOString(), authorId: currentUser.id, authorName: currentUser.name } });
-      const result = await addCaseComment(caseId, body);
+      const result = bugId ? await addBugComment(bugId, body) : await addCaseComment(caseId ?? "", body);
       if (!result.ok) {
         input.value = body;
         toast.error(result.error);

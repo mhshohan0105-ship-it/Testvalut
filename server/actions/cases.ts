@@ -110,7 +110,7 @@ export async function createCase(projectId: string, input: CaseFormInput, attach
       await recordVersions(tx, [testCase.id], user.id);
       // Files added before the first save have no case to link to until now.
       await tx.attachment.updateMany({
-        where: { id: { in: z.array(z.string().min(1)).max(100).parse(attachmentIds) }, projectId, uploadedById: user.id, testCaseId: null, testResultId: null },
+        where: { id: { in: z.array(z.string().min(1)).max(100).parse(attachmentIds) }, projectId, uploadedById: user.id, testCaseId: null, testResultId: null, bugId: null },
         data: { testCaseId: testCase.id },
       });
       await logActivity(tx, { projectId, userId: user.id, action: "created", entityType: "case", entityId: testCase.id, meta: { name: `C${caseNumber} ${testCase.title}` } });

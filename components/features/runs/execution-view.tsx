@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Ban, Check, ChevronLeft, ChevronRight, CircleSlash, Lock, PartyPopper, RotateCw, Timer, X, type LucideIcon } from "lucide-react";
+import { Ban, Bug, Check, ChevronLeft, ChevronRight, CircleSlash, Lock, PartyPopper, RotateCw, Timer, X, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { AttachmentGallery } from "@/components/ui/attachment-gallery";
 import { PriorityBadge, StatusBadge } from "@/components/ui/badges";
@@ -537,6 +537,13 @@ function CasePanel({
               />
             </div>
           </GlassCard>
+        )}
+        {canExecute && (
+          <Button asChild variant="outline" className="w-full">
+            <a href={`/bugs/new?runCase=${detail.id}`} target="_blank" rel="noreferrer">
+              <Bug /> Report a bug
+            </a>
+          </Button>
         )}
         <div className="flex items-center justify-between gap-2">
           <Button variant="outline" onClick={onPrev} disabled={!onPrev}>

@@ -6,7 +6,7 @@ import { CaseActions } from "@/components/features/cases/case-actions";
 import { CaseAttachments } from "@/components/features/cases/case-attachments";
 import { CommentsPanel } from "@/components/features/cases/comments-panel";
 import { AttachmentGallery } from "@/components/ui/attachment-gallery";
-import { PriorityBadge, StatusBadge } from "@/components/ui/badges";
+import { BugStatusBadge, PriorityBadge, StatusBadge } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -17,6 +17,7 @@ import { diffSnapshots } from "@/lib/utils/case-diff";
 import { caseLabel, formatDateTime, formatDuration } from "@/lib/utils/format";
 import { richTextToPlain, sanitizeRichText } from "@/lib/utils/sanitize";
 import { sectionPath } from "@/lib/utils/tree";
+import { getCaseBugs } from "@/server/queries/bugs";
 import { getCaseAttachments, getCaseComments, getCaseDetail, getCaseResults, getCaseVersions, getSections } from "@/server/queries/cases";
 
 export const metadata: Metadata = { title: "Test case" };
@@ -25,6 +26,7 @@ const TABS = [
   { id: "details", label: "Details" },
   { id: "history", label: "History" },
   { id: "results", label: "Results" },
+  { id: "bugs", label: "Bugs" },
   { id: "comments", label: "Comments" },
 ] as const;
 
@@ -144,6 +146,7 @@ export default async function CasePage({
 
       {tab === "history" && <HistoryTab caseId={caseId} />}
       {tab === "results" && <ResultsTab caseId={caseId} cursor={cursor} />}
+      {tab === "bugs" && <BugsTab caseId={caseId} canReport={hasPermission(access.role, "bug:report") && !access.project.archived} />}
       {tab === "comments" && (
         <GlassCard className="p-5">
           <CommentsPanel
@@ -213,6 +216,33 @@ async function HistoryTab({ caseId }: { caseId: string }) {
       })}
       {versions.length === 0 && <p className="text-sm text-muted-foreground">No history recorded yet.</p>}
     </ol>
+  );
+}
+
+async function BugsTab({ caseId, canReport }: { caseId: string; canReport: boolean }) {
+  const bugs = await getCaseBugs(caseId);
+  return (
+    <GlassCard className="p-5">
+      {bugs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No bugs are linked to this case.</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {bugs.map((bug) => (
+            <li key={bug.id} className="flex flex-wrap items-center gap-2 py-2.5 text-sm">
+              <span className="font-mono text-xs text-muted-foreground">B{bug.bugNumber}</span>
+              <Link href={`/bugs/${bug.id}`} className="min-w-0 flex-1 truncate font-medium hover:text-primary">{bug.title}</Link>
+              <PriorityBadge priority={bug.severity} />
+              <BugStatusBadge status={bug.status} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {canReport && (
+        <Button asChild variant="outline" className="mt-4">
+          <Link href={`/bugs/new?case=${caseId}`}>Report a bug</Link>
+        </Button>
+      )}
+    </GlassCard>
   );
 }
 

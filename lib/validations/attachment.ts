@@ -16,6 +16,7 @@ export const registerAttachmentSchema = z.object({
   mimeType: z.string().min(1).max(100),
   sizeBytes: z.number().int().min(0),
   testCaseId: z.string().min(1).nullable(),
+  bugId: z.string().min(1).nullable().optional(),
 });
 
 export type RegisterAttachmentInput = z.infer<typeof registerAttachmentSchema>;

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { FilePlus2, FolderKanban, Keyboard, ListChecks, Moon, PlayCircle, Sun, type LucideIcon } from "lucide-react";
+import { Bug, FilePlus2, FolderKanban, Keyboard, ListChecks, Moon, PlayCircle, Sun, type LucideIcon } from "lucide-react";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { caseLabel } from "@/lib/utils/format";
 import { setTheme, useTheme } from "@/lib/theme";
@@ -11,7 +11,7 @@ import { NAV_ITEMS } from "./nav-items";
 import { SHOW_SHORTCUTS_EVENT } from "./global-shortcuts";
 
 const DEBOUNCE_MS = 250;
-const NO_RESULTS: SearchResults = { projects: [], cases: [], runs: [] };
+const NO_RESULTS: SearchResults = { projects: [], cases: [], runs: [], bugs: [] };
 
 export function CommandMenu({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const router = useRouter();
@@ -51,6 +51,7 @@ export function CommandMenu({ open, onOpenChange }: { open: boolean; onOpenChang
   const actions: { label: string; icon: LucideIcon; perform: () => void }[] = [
     { label: "New test case", icon: FilePlus2, perform: () => router.push("/cases/new") },
     { label: "New run", icon: PlayCircle, perform: () => router.push("/runs/new") },
+    { label: "Report a bug", icon: Bug, perform: () => router.push("/bugs/new") },
     { label: "Keyboard shortcuts", icon: Keyboard, perform: () => window.dispatchEvent(new Event(SHOW_SHORTCUTS_EVENT)) },
     {
       label: `Switch to ${theme === "dark" ? "light" : "dark"} theme`,
@@ -78,6 +79,18 @@ export function CommandMenu({ open, onOpenChange }: { open: boolean; onOpenChang
                 <span className="font-mono text-xs text-muted-foreground">{caseLabel(testCase.caseNumber)}</span>
                 <span className="truncate">{testCase.title}</span>
                 <span className="ml-auto font-mono text-xs text-muted-foreground">{testCase.project.key}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+        {results.bugs.length > 0 && (
+          <CommandGroup heading="Bugs">
+            {results.bugs.map((bug) => (
+              <CommandItem key={bug.id} value={`bug-${bug.id}`} onSelect={() => run(() => router.push(`/bugs/${bug.id}`))}>
+                <Bug />
+                <span className="font-mono text-xs text-muted-foreground">B{bug.bugNumber}</span>
+                <span className="truncate">{bug.title}</span>
+                <span className="ml-auto font-mono text-xs text-muted-foreground">{bug.project.key}</span>
               </CommandItem>
             ))}
           </CommandGroup>

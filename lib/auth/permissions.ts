@@ -8,7 +8,9 @@ export type Permission =
   | "milestone:manage"
   | "result:create"
   | "comment:create"
-  | "attachment:upload";
+  | "attachment:upload"
+  | "bug:report"
+  | "bug:delete";
 
 const ALLOWED_ROLES: Record<Permission, readonly Role[]> = {
   "team:manage": ["ADMIN"],
@@ -19,6 +21,8 @@ const ALLOWED_ROLES: Record<Permission, readonly Role[]> = {
   "result:create": ["ADMIN", "LEAD", "TESTER"],
   "comment:create": ["ADMIN", "LEAD", "TESTER"],
   "attachment:upload": ["ADMIN", "LEAD", "TESTER"],
+  "bug:report": ["ADMIN", "LEAD", "TESTER"],
+  "bug:delete": ["ADMIN", "LEAD"],
 };
 
 export function hasPermission(role: Role, permission: Permission) {

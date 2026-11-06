@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, ChevronsUp, Minus } from "lucide-react";
-import type { Priority, TestStatus } from "@/generated/prisma/enums";
-import { PRIORITY_LABELS, STATUS_LABELS } from "@/lib/constants/testing";
+import type { BugStatus, Priority, TestStatus } from "@/generated/prisma/enums";
+import { BUG_STATUS_LABELS, PRIORITY_LABELS, STATUS_LABELS } from "@/lib/constants/testing";
 import { cn } from "@/lib/utils";
 
 const PRIORITY_STYLES: Record<Priority, { className: string; icon: typeof ChevronUp }> = {
@@ -16,6 +16,21 @@ export function PriorityBadge({ priority, className }: { priority: Priority; cla
     <span className={cn("inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium whitespace-nowrap", tone, className)}>
       <Icon className="size-3" aria-hidden />
       {PRIORITY_LABELS[priority]}
+    </span>
+  );
+}
+
+const BUG_STATUS_STYLES: Record<BugStatus, string> = {
+  OPEN: "text-status-failed bg-status-failed/12 border-status-failed/30",
+  IN_PROGRESS: "text-status-retest bg-status-retest/12 border-status-retest/30",
+  RESOLVED: "text-status-passed bg-status-passed/12 border-status-passed/30",
+  CLOSED: "text-status-untested bg-status-untested/12 border-status-untested/30",
+};
+
+export function BugStatusBadge({ status, className }: { status: BugStatus; className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium whitespace-nowrap", BUG_STATUS_STYLES[status], className)}>
+      {BUG_STATUS_LABELS[status]}
     </span>
   );
 }

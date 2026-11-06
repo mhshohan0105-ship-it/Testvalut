@@ -12,7 +12,9 @@ export async function searchEverything(user: CurrentUser, query: string) {
   const lowered = query.toLowerCase();
   const number = /^c?(\d{1,9})$/i.exec(query)?.[1];
 
-  const [cases, runs] = await Promise.all([
+  const bugNumber = /^b?(\d{1,9})$/i.exec(query)?.[1];
+
+  const [cases, runs, bugs] = await Promise.all([
     db.testCase.findMany({
       where: {
         projectId: { in: ids },
@@ -28,12 +30,22 @@ export async function searchEverything(user: CurrentUser, query: string) {
       orderBy: { createdAt: "desc" },
       take: LIMIT,
     }),
+    db.bug.findMany({
+      where: {
+        projectId: { in: ids },
+        OR: [{ title: { contains: query, mode: "insensitive" } }, ...(bugNumber ? [{ bugNumber: Number(bugNumber) }] : [])],
+      },
+      select: { id: true, bugNumber: true, title: true, project: { select: { key: true } } },
+      orderBy: { createdAt: "desc" },
+      take: LIMIT,
+    }),
   ]);
 
   return {
     projects: projects.filter((project) => project.name.toLowerCase().includes(lowered) || project.key.toLowerCase().includes(lowered)).slice(0, LIMIT),
     cases: cases.sort((a, b) => Number(b.caseNumber === Number(number)) - Number(a.caseNumber === Number(number))),
     runs,
+    bugs,
   };
 }
 

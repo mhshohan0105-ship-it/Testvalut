@@ -1,4 +1,4 @@
-import type { CaseType, Priority, Role, TestStatus } from "@/generated/prisma/enums";
+import type { BugStatus, CaseType, Priority, Role, TestStatus } from "@/generated/prisma/enums";
 
 export const PRIORITIES: Priority[] = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
 export const CASE_TYPES: CaseType[] = ["FUNCTIONAL", "REGRESSION", "SMOKE", "UI", "API", "PERFORMANCE", "SECURITY", "OTHER"];
@@ -24,6 +24,15 @@ export const STATUS_LABELS: Record<TestStatus, string> = {
   RETEST: "Retest",
   UNTESTED: "Untested",
   SKIPPED: "Skipped",
+};
+
+export const BUG_STATUSES: BugStatus[] = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
+
+export const BUG_STATUS_LABELS: Record<BugStatus, string> = {
+  OPEN: "Open",
+  IN_PROGRESS: "In progress",
+  RESOLVED: "Resolved",
+  CLOSED: "Closed",
 };
 
 export const PROJECT_COLORS = ["#7C3AED", "#4F46E5", "#0EA5E9", "#14B8A6", "#10B981", "#F59E0B", "#F43F5E", "#EC4899"];

@@ -119,7 +119,7 @@ export async function recordResult(input: RecordResultInput) {
       });
       if (values.attachmentIds.length) {
         await tx.attachment.updateMany({
-          where: { id: { in: values.attachmentIds }, projectId: run.projectId, uploadedById: user.id, testCaseId: null, testResultId: null },
+          where: { id: { in: values.attachmentIds }, projectId: run.projectId, uploadedById: user.id, testCaseId: null, testResultId: null, bugId: null },
           data: { testResultId: result.id },
         });
       }

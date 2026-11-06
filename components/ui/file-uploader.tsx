@@ -15,12 +15,14 @@ const MULTIPART_FROM_BYTES = 5 * 1024 * 1024;
 export function FileUploader({
   projectId,
   testCaseId = null,
+  bugId = null,
   onUploaded,
   pasteTarget = false,
   hint,
 }: {
   projectId: string;
   testCaseId?: string | null;
+  bugId?: string | null;
   onUploaded: (attachment: AttachmentView) => void;
   /** Also accept files pasted anywhere on the page. */
   pasteTarget?: boolean;
@@ -72,6 +74,7 @@ export function FileUploader({
         mimeType: contentType,
         sizeBytes: file.size,
         testCaseId,
+        bugId,
       });
       if (!result.ok) {
         toast.error(`${original.name}: ${result.error}`);

@@ -26,6 +26,10 @@ export async function registerAttachment(input: RegisterAttachmentInput) {
       const testCase = await db.testCase.findFirst({ where: { id: values.testCaseId, projectId: values.projectId }, select: { id: true } });
       if (!testCase) throw new ActionError("This case no longer exists.");
     }
+    if (values.bugId) {
+      const bug = await db.bug.findFirst({ where: { id: values.bugId, projectId: values.projectId }, select: { id: true } });
+      if (!bug) throw new ActionError("This bug no longer exists.");
+    }
 
     const attachment = await db.attachment.create({
       data: {
@@ -37,10 +41,12 @@ export async function registerAttachment(input: RegisterAttachmentInput) {
         sizeBytes: values.sizeBytes,
         uploadedById: user.id,
         testCaseId: values.testCaseId,
+        bugId: values.bugId ?? null,
       },
       select: ATTACHMENT_SELECT,
     });
     if (values.testCaseId) revalidatePath(`/cases/${values.testCaseId}`, "layout");
+    if (values.bugId) revalidatePath(`/bugs/${values.bugId}`, "layout");
     return attachment;
   });
 }
@@ -54,6 +60,7 @@ export async function deleteAttachment(attachmentId: string) {
         url: true,
         projectId: true,
         testCaseId: true,
+        bugId: true,
         uploadedById: true,
         testResult: { select: { runCase: { select: { run: { select: { status: true } } } } } },
       },
@@ -66,6 +73,7 @@ export async function deleteAttachment(attachmentId: string) {
 
     await removeAttachments([attachment]);
     if (attachment.testCaseId) revalidatePath(`/cases/${attachment.testCaseId}`, "layout");
+    if (attachment.bugId) revalidatePath(`/bugs/${attachment.bugId}`, "layout");
     revalidatePath("/settings");
   });
 }
@@ -77,7 +85,7 @@ export async function cleanUpUnattachedFiles() {
   return runAction(async () => {
     await requirePermission("team:manage");
     const orphans = await db.attachment.findMany({
-      where: { testCaseId: null, testResultId: null, createdAt: { lt: new Date(Date.now() - ORPHAN_AGE_MS) } },
+      where: { testCaseId: null, testResultId: null, bugId: null, createdAt: { lt: new Date(Date.now() - ORPHAN_AGE_MS) } },
       select: { id: true, url: true },
     });
     await removeAttachments(orphans);

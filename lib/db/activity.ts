@@ -6,7 +6,7 @@ type ActivityEntry = {
   projectId: string;
   userId: string;
   action: string;
-  entityType: "project" | "section" | "case" | "run" | "milestone" | "member";
+  entityType: "project" | "section" | "case" | "run" | "milestone" | "member" | "bug";
   entityId: string;
   meta?: Prisma.InputJsonValue;
 };
