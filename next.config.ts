@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   devIndicators: { position: "bottom-right" },
   experimental: {
     optimizePackageImports: ["lucide-react", "motion", "recharts"],
+    serverActions: { bodySizeLimit: "4mb" },
   },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "*.public.blob.vercel-storage.com" }],

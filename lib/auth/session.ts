@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { ActionError } from "@/lib/utils/action";
 import { auth } from "./index";
 import { hasPermission, type Permission } from "./permissions";
 
@@ -29,13 +30,15 @@ export async function requireUser(): Promise<CurrentUser> {
   return user;
 }
 
-export class ForbiddenError extends Error {}
+export class ForbiddenError extends ActionError {
+  constructor(message = "You don't have permission to do that.") {
+    super(message);
+  }
+}
 
-/** For server actions: every mutation calls this before touching data. */
+/** For workspace-level actions. Project-level actions use requireProjectAccess instead. */
 export async function requirePermission(permission: Permission): Promise<CurrentUser> {
   const user = await requireUser();
-  if (!hasPermission(user.role, permission)) {
-    throw new ForbiddenError(`Your role does not allow ${permission}`);
-  }
+  if (!hasPermission(user.role, permission)) throw new ForbiddenError();
   return user;
 }

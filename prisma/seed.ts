@@ -32,6 +32,7 @@ async function createSections(
   counter: { next: number },
   parentId: string | null = null,
 ): Promise<{ id: string; seed: SeedCase }[]> {
+  const steps = (seed: SeedCase) => seed.steps.map(([action, expectedResult]) => ({ action, expectedResult }));
   const created: { id: string; seed: SeedCase }[] = [];
   for (const [sectionOrder, section] of sections.entries()) {
     const { id: sectionId } = await db.section.create({
@@ -59,7 +60,20 @@ async function createSections(
             create: seed.steps.map(([action, expectedResult], order) => ({ order, action, expectedResult })),
           },
           versions: {
-            create: { changedById: authorId, snapshot: { title: seed.title, priority: seed.priority, type: seed.type, steps: seed.steps } },
+            create: {
+              changedById: authorId,
+              snapshot: {
+                title: seed.title,
+                section: section.name,
+                preconditions: seed.preconditions ?? null,
+                priority: seed.priority,
+                type: seed.type,
+                estimate: seed.estimate,
+                references: seed.references ?? null,
+                tags: seed.tags,
+                steps: steps(seed),
+              },
+            },
           },
         },
         select: { id: true },
