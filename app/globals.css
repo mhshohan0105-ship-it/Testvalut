@@ -120,6 +120,7 @@
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-brand: var(--font-oxanium), var(--font-inter), sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -178,6 +179,16 @@
   background: linear-gradient(120deg, #a78bfa, #818cf8 55%, #67e8f9);
   background-clip: text;
   color: transparent;
+}
+
+@utility wordmark-accent {
+  background: linear-gradient(90deg, #0891b2, #7c3aed);
+  background-clip: text;
+  color: transparent;
+
+  .dark & {
+    background-image: linear-gradient(90deg, #22d3ee, #a78bfa);
+  }
 }
 
 /* The glow is a separate layer so hover only changes opacity, never box-shadow. */

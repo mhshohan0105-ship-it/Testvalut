@@ -11,8 +11,29 @@ const STATUSES = [
   { label: "Untested", color: "#475569", grow: 18 },
 ];
 
+const HEADLINE = "Every test. One command center.";
+const TAGLINE = "Cases, runs, bugs and reports. Try the live demo.";
+
+/** Fetches only the letters a piece of text needs. */
+async function loadFont(family: string, weight: 400 | 700 | 800, text: string) {
+  const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${family}:wght@${weight}&text=${encodeURIComponent(text)}`)).text();
+  const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
+  if (!url) throw new Error(`No font file for ${family}`);
+  return { name: family, data: await (await fetch(url)).arrayBuffer(), weight, style: "normal" as const };
+}
+
+/** All or nothing: a font that covers only some of the text would mix letter styles. */
+async function loadFonts() {
+  try {
+    return await Promise.all([loadFont("Oxanium", 700, "TestVault"), loadFont("Inter", 800, HEADLINE), loadFont("Inter", 400, TAGLINE)]);
+  } catch {
+    return null;
+  }
+}
+
 /** The picture shown when the link is shared on LinkedIn and other sites. */
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const fonts = await loadFonts();
   return new ImageResponse(
     <div
       style={{
@@ -28,31 +49,35 @@ export default function OpenGraphImage() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        <div
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: 20,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundImage: "linear-gradient(135deg, #7c3aed, #4f46e5)",
-          }}
-        >
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 13l4 4L19 7" />
-          </svg>
+        <svg width="84" height="84" viewBox="0 0 64 64">
+          <defs>
+            <linearGradient id="mark" gradientUnits="userSpaceOnUse" x1="4" y1="4" x2="60" y2="60">
+              <stop stopColor="#22d3ee" />
+              <stop offset="1" stopColor="#7c3aed" />
+            </linearGradient>
+          </defs>
+          <g fill="none" stroke="url(#mark)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 14v8l24 34 24-34v-8" />
+            <path d="M21 14v5l11 17 11-17v-5" />
+          </g>
+          <circle cx="8" cy="10" r="4.5" fill="#22d3ee" />
+          <circle cx="56" cy="10" r="4.5" fill="#22d3ee" />
+          <circle cx="21" cy="10" r="4" fill="#8b5cf6" />
+          <circle cx="43" cy="10" r="4" fill="#8b5cf6" />
+        </svg>
+        <div style={{ display: "flex", fontSize: 54, fontWeight: 700, fontFamily: fonts ? "Oxanium" : undefined }}>
+          Test
+          <span style={{ backgroundImage: "linear-gradient(90deg, #22d3ee, #a78bfa)", backgroundClip: "text", color: "transparent" }}>Vault</span>
         </div>
-        <div style={{ fontSize: 44, fontWeight: 700 }}>TestVault</div>
       </div>
-      <div style={{ marginTop: 44, fontSize: 76, fontWeight: 800, lineHeight: 1.08, letterSpacing: -2 }}>Every test. One command center.</div>
-      <div style={{ marginTop: 24, fontSize: 32, color: "#a2a5c6" }}>Cases, runs, bugs and reports. Try the live demo.</div>
+      <div style={{ marginTop: 44, fontSize: 76, fontWeight: 800, lineHeight: 1.08, letterSpacing: -2, fontFamily: fonts ? "Inter" : undefined }}>{HEADLINE}</div>
+      <div style={{ marginTop: 24, fontSize: 32, fontWeight: 400, color: "#a2a5c6", fontFamily: fonts ? "Inter" : undefined }}>{TAGLINE}</div>
       <div style={{ marginTop: 52, display: "flex", width: "100%", height: 20, borderRadius: 10, overflow: "hidden" }}>
         {STATUSES.map((status) => (
           <div key={status.label} style={{ flexGrow: status.grow, backgroundColor: status.color }} />
         ))}
       </div>
     </div>,
-    size,
+    { ...size, fonts: fonts ?? undefined },
   );
 }

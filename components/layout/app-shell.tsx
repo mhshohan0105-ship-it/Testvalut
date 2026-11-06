@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ChevronsLeft } from "lucide-react";
 import { DemoBanner } from "./demo-banner";
-import { LogoMark } from "./logo";
+import { LogoMark, Wordmark } from "./logo";
 import { CHIP_CLASS, NavList, ROW_CLASS } from "./nav-list";
 
 const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -36,7 +36,9 @@ export function AppShell({
           <span className="sb-pin flex shrink-0">
             <LogoMark />
           </span>
-          <span className="sb-label ml-2.5 text-[15px] font-semibold tracking-tight">TestVault</span>
+          <span className="sb-label ml-2.5">
+            <Wordmark className="text-[17px]" />
+          </span>
         </Link>
 
         <NavList />

@@ -1,6 +1,6 @@
 import { AuthVisual } from "@/components/features/three/auth-visual";
 import { DemoBanner } from "@/components/layout/demo-banner";
-import { LogoMark } from "@/components/layout/logo";
+import { LogoMark, Wordmark } from "@/components/layout/logo";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="mx-auto w-full max-w-md">
           <div className="mb-8 flex items-center gap-2.5">
             <LogoMark />
-            <span className="text-lg font-semibold tracking-tight">TestVault</span>
+            <Wordmark className="text-xl" />
           </div>
           {children}
         </div>

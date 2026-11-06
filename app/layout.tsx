@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Oxanium } from "next/font/google";
 import { Aurora } from "@/components/layout/aurora";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
+const oxanium = Oxanium({ subsets: ["latin"], weight: "700", variable: "--font-oxanium", display: "swap" });
 
 const DESCRIPTION = "Test management for teams that ship: cases, runs, results, bugs and reports.";
 
@@ -38,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`dark ${inter.variable} ${jetbrains.variable}`}
+      className={`dark ${inter.variable} ${jetbrains.variable} ${oxanium.variable}`}
       style={{ colorScheme: "dark" }}
       suppressHydrationWarning
     >
