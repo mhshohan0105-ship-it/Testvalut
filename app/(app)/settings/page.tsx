@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HardDrive, TriangleAlert } from "lucide-react";
+import { ChangePasswordForm } from "@/components/features/settings/change-password-form";
 import { CleanUpFilesButton } from "@/components/features/settings/clean-up-files-button";
 import { PageHeader } from "@/components/layout/page-header";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -52,6 +53,10 @@ export default async function SettingsPage() {
             <CleanUpFilesButton />
           </div>
         )}
+      </GlassCard>
+      <GlassCard className="mt-5 max-w-2xl p-5">
+        <h2 className="font-semibold tracking-tight">Your password</h2>
+        <ChangePasswordForm />
       </GlassCard>
     </>
   );

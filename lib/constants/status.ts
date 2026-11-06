@@ -1,7 +1,7 @@
 import type { TestStatus } from "@/generated/prisma/enums";
 
-/** Order used by progress bars and status counts. */
-export const STATUS_ORDER: TestStatus[] = ["PASSED", "FAILED", "BLOCKED", "RETEST", "SKIPPED", "UNTESTED"];
+/** Order used by progress bars and charts. It keeps look-alike colors apart, which palette validation confirmed. */
+export const STATUS_ORDER: TestStatus[] = ["PASSED", "SKIPPED", "FAILED", "RETEST", "BLOCKED", "UNTESTED"];
 
 export const STATUS_BAR_CLASS: Record<TestStatus, string> = {
   PASSED: "bg-status-passed",

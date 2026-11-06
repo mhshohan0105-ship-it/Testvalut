@@ -41,7 +41,7 @@
   --status-blocked: #b45309;
   --status-retest: #0369a1;
   --status-untested: #64748b;
-  --status-skipped: #7a7296;
+  --status-skipped: #7d55b8;
 
   --radius: 0.75rem;
   --sidebar-width: 15rem;
@@ -86,7 +86,7 @@
   --status-blocked: #fbbf24;
   --status-retest: #38bdf8;
   --status-untested: #94a3b8;
-  --status-skipped: #a8a2c4;
+  --status-skipped: #b08ee0;
 }
 
 @theme inline {
@@ -464,8 +464,45 @@
   }
 }
 
+/* A clean report on paper: ink on white, whichever theme is on screen. */
 @media print {
-  .aurora {
-    display: none;
+  :root,
+  .dark {
+    --background: #ffffff;
+    --foreground: #14152e;
+    --card: #ffffff;
+    --muted: #eef0f6;
+    --muted-foreground: #4a4d6a;
+    --border: #d5d8e4;
+    --glass-border: #d5d8e4;
+    --glass-highlight: transparent;
+    --glass-shadow: none;
+    --primary: #6d28d9;
+    --status-passed: #047857;
+    --status-failed: #e11d48;
+    --status-blocked: #b45309;
+    --status-retest: #0369a1;
+    --status-untested: #64748b;
+    --status-skipped: #7d55b8;
+    color-scheme: light;
+  }
+  .aurora,
+  .sb-panel,
+  header,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+  .shell-main {
+    padding-left: 0 !important;
+  }
+  .glass {
+    backdrop-filter: none;
+  }
+  .page-enter {
+    animation: none;
+  }
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }

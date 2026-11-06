@@ -27,3 +27,7 @@ export function formatDuration(seconds: number) {
 export function caseLabel(caseNumber: number) {
   return `C${caseNumber}`;
 }
+
+export function isOverdue(dueDate: Date | null, completed: boolean) {
+  return !completed && dueDate !== null && dueDate.getTime() < Date.now();
+}

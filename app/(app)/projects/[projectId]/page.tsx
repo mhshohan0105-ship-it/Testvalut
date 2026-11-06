@@ -9,20 +9,12 @@ import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getProjectForPage } from "@/lib/auth/project-access";
+import { describeActivity } from "@/lib/utils/activity";
 import { formatDateTime } from "@/lib/utils/format";
 import { openProjectCases } from "@/server/actions/projects";
 import { getProjectActivity, getProjectMembers, getUsersOutsideProject } from "@/server/queries/projects";
 
 export const metadata: Metadata = { title: "Project" };
-
-function describeActivity(meta: unknown) {
-  if (typeof meta !== "object" || meta === null) return "";
-  const { name, count } = meta as { name?: unknown; count?: unknown };
-  const parts: string[] = [];
-  if (typeof count === "number") parts.push(`${count} ${count === 1 ? "case" : "cases"}`);
-  if (typeof name === "string") parts.push(name);
-  return parts.join(" · ");
-}
 
 export default async function ProjectPage({
   params,
@@ -90,8 +82,7 @@ export default async function ProjectPage({
             {activity.rows.map((entry) => (
               <li key={entry.id} className="text-sm">
                 <p>
-                  <span className="font-medium">{entry.user.name}</span> {entry.action} {entry.entityType === "case" ? "" : entry.entityType}{" "}
-                  <span className="text-muted-foreground">{describeActivity(entry.meta)}</span>
+                  <span className="font-medium">{entry.user.name}</span> {describeActivity(entry)}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{formatDateTime(entry.createdAt)}</p>
               </li>
