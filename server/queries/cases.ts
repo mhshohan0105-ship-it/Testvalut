@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
+import { ATTACHMENT_SELECT } from "@/lib/db/attachments";
 import { sectionSubtreeIds, type SectionItem } from "@/lib/utils/tree";
 import { caseSnapshotSchema, type CaseSnapshot } from "@/lib/validations/case";
 import type { CaseQuery } from "@/lib/validations/case-query";
@@ -166,6 +167,7 @@ export async function getCaseResults(caseId: string, cursor?: string) {
       defectRef: true,
       createdAt: true,
       createdBy: { select: { name: true } },
+      attachments: { select: ATTACHMENT_SELECT, orderBy: { createdAt: "asc" } },
       runCase: { select: { run: { select: { id: true, name: true, environment: true } } } },
     },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -174,6 +176,10 @@ export async function getCaseResults(caseId: string, cursor?: string) {
   });
   const page = rows.slice(0, RESULT_PAGE_SIZE);
   return { rows: page, nextCursor: rows.length > RESULT_PAGE_SIZE ? page[page.length - 1]?.id : undefined };
+}
+
+export async function getCaseAttachments(caseId: string) {
+  return db.attachment.findMany({ where: { testCaseId: caseId }, select: ATTACHMENT_SELECT, orderBy: { createdAt: "asc" } });
 }
 
 export async function getCaseComments(caseId: string) {

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
 import type { RunStatus, TestStatus } from "@/generated/prisma/enums";
 import type { StatusCounts } from "@/lib/constants/status";
+import { ATTACHMENT_SELECT } from "@/lib/db/attachments";
 import { sanitizeRichText } from "@/lib/utils/sanitize";
 import { getSections } from "./cases";
 
@@ -153,6 +154,7 @@ export async function getRunCaseDetail(runId: string, runCaseId: string) {
           stepResults: true,
           createdAt: true,
           createdBy: { select: { name: true } },
+          attachments: { select: ATTACHMENT_SELECT, orderBy: { createdAt: "asc" } },
         },
         orderBy: { createdAt: "desc" },
         take: 20,

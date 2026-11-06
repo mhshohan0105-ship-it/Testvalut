@@ -31,6 +31,7 @@ export const recordResultSchema = z.object({
   defectRef: z.string().trim().max(500, "Keep the defect reference under 500 characters"),
   elapsedSeconds: z.number().int().min(0).max(1000000),
   stepResults: z.array(z.object({ order: z.number().int().min(0), status: z.enum(["PASSED", "FAILED"]) })).max(200),
+  attachmentIds: z.array(z.string().min(1)).max(50),
 });
 
 export type RecordResultInput = z.infer<typeof recordResultSchema>;

@@ -7,11 +7,14 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, CircleCheck, CloudOff, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { AttachmentGallery } from "@/components/ui/attachment-gallery";
 import { Button } from "@/components/ui/button";
+import { FileUploader } from "@/components/ui/file-uploader";
 import { FieldError, NativeSelect } from "@/components/ui/form-controls";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { AttachmentView } from "@/lib/constants/attachments";
 import { CASE_TYPES, CASE_TYPE_LABELS, PRIORITIES, PRIORITY_LABELS } from "@/lib/constants/testing";
 import { caseLabel } from "@/lib/utils/format";
 import { sectionOptions, type SectionItem } from "@/lib/utils/tree";
@@ -51,6 +54,8 @@ export function CaseForm({
   caseId,
   caseNumber,
   initialUpdatedAt,
+  initialAttachments = [],
+  currentUserId,
 }: {
   projectId: string;
   sections: SectionItem[];
@@ -58,12 +63,15 @@ export function CaseForm({
   caseId?: string;
   caseNumber?: number;
   initialUpdatedAt?: string;
+  initialAttachments?: AttachmentView[];
+  currentUserId: string;
 }) {
   const router = useRouter();
   const draftKey = `tv-case-draft:${caseId ?? `new:${projectId}`}`;
   const [status, setStatus] = useState<Status>("saved");
   const [draftRestored, setDraftRestored] = useState(false);
   const [saving, startSaving] = useTransition();
+  const [attachments, setAttachments] = useState(initialAttachments);
   const skipDraftRef = useRef(false);
 
   const form = useForm<CaseFormInput>({ resolver: zodResolver(caseFormSchema), defaultValues: initial });
@@ -130,7 +138,7 @@ export function CaseForm({
     (values) => {
       setStatus("saving");
       startSaving(async () => {
-        const result = caseId ? await updateCase(caseId, values, initialUpdatedAt ?? "") : await createCase(projectId, values);
+        const result = caseId ? await updateCase(caseId, values, initialUpdatedAt ?? "") : await createCase(projectId, values, attachments.map((attachment) => attachment.id));
         if (!result.ok) {
           setStatus("draft");
           toast.error(result.error);
@@ -215,6 +223,17 @@ export function CaseForm({
             <h2 className="mb-3 font-semibold tracking-tight">Steps</h2>
             <StepsEditor form={form} />
             <FieldError message={errors.steps?.message} />
+          </GlassCard>
+
+          <GlassCard className="space-y-3 p-5">
+            <h2 className="font-semibold tracking-tight">Attachments</h2>
+            <AttachmentGallery
+              items={attachments}
+              currentUserId={currentUserId}
+              canModerate
+              onDeleted={(id) => setAttachments((current) => current.filter((attachment) => attachment.id !== id))}
+            />
+            <FileUploader projectId={projectId} testCaseId={caseId ?? null} onUploaded={(attachment) => setAttachments((current) => [...current, attachment])} />
           </GlassCard>
         </div>
 

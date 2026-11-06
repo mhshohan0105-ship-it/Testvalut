@@ -27,7 +27,8 @@ export default async function ExecutePage({
   return (
     <ExecutionView
       key={run.id}
-      run={{ id: run.id, name: run.name, environment: run.environment }}
+      run={{ id: run.id, projectId: run.projectId, name: run.name, environment: run.environment }}
+      currentUserId={access.user.id}
       initialQueue={queue}
       initialId={initialId}
       canExecute={run.status === "ACTIVE" && hasPermission(access.role, "result:create") && !access.project.archived}

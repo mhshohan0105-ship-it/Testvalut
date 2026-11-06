@@ -4,7 +4,7 @@ import { CaseForm } from "@/components/features/cases/case-form";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getProjectForPage } from "@/lib/auth/project-access";
 import { sanitizeRichText } from "@/lib/utils/sanitize";
-import { getCaseForEditor, getSections } from "@/server/queries/cases";
+import { getCaseAttachments, getCaseForEditor, getSections } from "@/server/queries/cases";
 
 export const metadata: Metadata = { title: "Edit case" };
 
@@ -16,10 +16,12 @@ export default async function EditCasePage({ params }: { params: Promise<{ caseI
   const access = await getProjectForPage(testCase.projectId);
   if (!access || !hasPermission(access.role, "case:manage") || access.project.archived) notFound();
 
-  const sections = await getSections(testCase.projectId);
+  const [sections, attachments] = await Promise.all([getSections(testCase.projectId), getCaseAttachments(caseId)]);
 
   return (
     <CaseForm
+      currentUserId={access.user.id}
+      initialAttachments={attachments}
       projectId={testCase.projectId}
       sections={sections}
       caseId={testCase.id}

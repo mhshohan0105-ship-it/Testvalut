@@ -7,6 +7,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { requireProjectAccess } from "@/lib/auth/project-access";
 import { db } from "@/lib/db";
 import { logActivity } from "@/lib/db/activity";
+import { removeAttachmentsOfCases } from "@/lib/db/attachments";
 import { ActionError, runAction } from "@/lib/utils/action";
 import { normalizeRichText, plainToRichText } from "@/lib/utils/sanitize";
 import { sectionPath } from "@/lib/utils/tree";
@@ -87,7 +88,7 @@ function caseFields(input: CaseFormInput) {
   };
 }
 
-export async function createCase(projectId: string, input: CaseFormInput) {
+export async function createCase(projectId: string, input: CaseFormInput, attachmentIds: string[] = []) {
   return runAction(async () => {
     const { user } = await requireProjectAccess(projectId, "case:manage");
     const parsed = caseFormSchema.parse(input);
@@ -107,6 +108,11 @@ export async function createCase(projectId: string, input: CaseFormInput) {
         select: { id: true, caseNumber: true, title: true },
       });
       await recordVersions(tx, [testCase.id], user.id);
+      // Files added before the first save have no case to link to until now.
+      await tx.attachment.updateMany({
+        where: { id: { in: z.array(z.string().min(1)).max(100).parse(attachmentIds) }, projectId, uploadedById: user.id, testCaseId: null, testResultId: null },
+        data: { testCaseId: testCase.id },
+      });
       await logActivity(tx, { projectId, userId: user.id, action: "created", entityType: "case", entityId: testCase.id, meta: { name: `C${caseNumber} ${testCase.title}` } });
       return testCase;
     });
@@ -247,6 +253,7 @@ export async function bulkDeleteCases(input: { projectId: string; caseIds: strin
   return runAction(async () => {
     const { projectId, caseIds } = bulkCasesSchema.parse(input);
     const { user } = await requireProjectAccess(projectId, "case:manage");
+    await removeAttachmentsOfCases(await ownedCaseIds(db, projectId, caseIds));
     const { count } = await db.testCase.deleteMany({ where: { id: { in: caseIds }, projectId } });
     await logActivity(db, { projectId, userId: user.id, action: "deleted", entityType: "case", entityId: projectId, meta: { count } });
     revalidatePath("/", "layout");

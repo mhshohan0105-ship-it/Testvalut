@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { CaseActions } from "@/components/features/cases/case-actions";
+import { CaseAttachments } from "@/components/features/cases/case-attachments";
 import { CommentsPanel } from "@/components/features/cases/comments-panel";
+import { AttachmentGallery } from "@/components/ui/attachment-gallery";
 import { PriorityBadge, StatusBadge } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -15,7 +17,7 @@ import { diffSnapshots } from "@/lib/utils/case-diff";
 import { caseLabel, formatDateTime, formatDuration } from "@/lib/utils/format";
 import { richTextToPlain, sanitizeRichText } from "@/lib/utils/sanitize";
 import { sectionPath } from "@/lib/utils/tree";
-import { getCaseComments, getCaseDetail, getCaseResults, getCaseVersions, getSections } from "@/server/queries/cases";
+import { getCaseAttachments, getCaseComments, getCaseDetail, getCaseResults, getCaseVersions, getSections } from "@/server/queries/cases";
 
 export const metadata: Metadata = { title: "Test case" };
 
@@ -103,6 +105,17 @@ export default async function CasePage({
                   ))}
                 </ol>
               )}
+            </GlassCard>
+            <GlassCard className="p-5">
+              <h2 className="mb-3 font-semibold tracking-tight">Attachments</h2>
+              <CaseAttachments
+                projectId={testCase.projectId}
+                caseId={testCase.id}
+                initial={await getCaseAttachments(caseId)}
+                currentUserId={access.user.id}
+                canUpload={hasPermission(access.role, "attachment:upload") && !access.project.archived}
+                canModerate={canManage}
+              />
             </GlassCard>
           </div>
           <GlassCard className="h-fit p-5">
@@ -226,6 +239,11 @@ async function ResultsTab({ caseId, cursor }: { caseId: string; cursor?: string 
                 <p className="mt-1 text-sm whitespace-pre-wrap text-muted-foreground">
                   <span className="font-medium">Actual:</span> {result.actualResult}
                 </p>
+              )}
+              {result.attachments.length > 0 && (
+                <div className="mt-3">
+                  <AttachmentGallery items={result.attachments} readOnly />
+                </div>
               )}
             </GlassCard>
           </li>

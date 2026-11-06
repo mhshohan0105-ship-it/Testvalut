@@ -5,14 +5,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Ban, Check, ChevronLeft, ChevronRight, CircleSlash, Lock, PartyPopper, RotateCw, Timer, X, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
+import { AttachmentGallery } from "@/components/ui/attachment-gallery";
 import { PriorityBadge, StatusBadge } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
+import { FileUploader } from "@/components/ui/file-uploader";
 import { Textarea } from "@/components/ui/form-controls";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { TestStatus } from "@/generated/prisma/enums";
+import type { AttachmentView } from "@/lib/constants/attachments";
 import { STATUS_ORDER, summarizeCounts, type StatusCounts } from "@/lib/constants/status";
 import { CASE_TYPE_LABELS, STATUS_LABELS } from "@/lib/constants/testing";
 import { cn } from "@/lib/utils";
@@ -23,9 +26,9 @@ import { RunProgress } from "./run-progress";
 
 type QueueItem = { id: string; status: TestStatus };
 type StepMark = "PASSED" | "FAILED";
-type Draft = { comment: string; actualResult: string; defectRef: string; marks: Record<number, StepMark> };
+type Draft = { comment: string; actualResult: string; defectRef: string; marks: Record<number, StepMark>; attachments: AttachmentView[] };
 
-const EMPTY_DRAFT: Draft = { comment: "", actualResult: "", defectRef: "", marks: {} };
+const EMPTY_DRAFT: Draft = { comment: "", actualResult: "", defectRef: "", marks: {}, attachments: [] };
 
 type ResultStatus = Exclude<TestStatus, "UNTESTED">;
 
@@ -40,6 +43,11 @@ const STATUS_BUTTONS: { status: ResultStatus; key: string; icon: LucideIcon; cla
 // Typed but unsubmitted notes survive moving between cases, and leave with the page.
 const drafts = new Map<string, Draft>();
 
+function saveDraft(runCaseId: string, draft: Draft) {
+  drafts.set(runCaseId, draft);
+  return draft;
+}
+
 function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
@@ -47,13 +55,15 @@ function isTypingTarget(target: EventTarget | null) {
 
 export function ExecutionView({
   run,
+  currentUserId,
   initialQueue,
   initialId,
   canExecute,
   canManage,
   closed,
 }: {
-  run: { id: string; name: string; environment: string | null };
+  run: { id: string; projectId: string; name: string; environment: string | null };
+  currentUserId: string;
   initialQueue: QueueItem[];
   initialId: string | null;
   canExecute: boolean;
@@ -145,6 +155,7 @@ export function ExecutionView({
         defectRef: draft.defectRef,
         elapsedSeconds,
         stepResults: Object.entries(draft.marks).map(([order, mark]) => ({ order: Number(order), status: mark })),
+        attachmentIds: draft.attachments.map((attachment) => attachment.id),
       });
       if (result.ok) {
         // The history shown for this case is now out of date.
@@ -284,6 +295,8 @@ export function ExecutionView({
             <CasePanel
               key={current.id}
               detail={detail}
+              projectId={run.projectId}
+              currentUserId={currentUserId}
               status={current.status}
               direction={direction}
               canExecute={canExecute}
@@ -316,6 +329,8 @@ function ElapsedTimer() {
 
 function CasePanel({
   detail,
+  projectId,
+  currentUserId,
   status,
   direction,
   canExecute,
@@ -325,6 +340,8 @@ function CasePanel({
   onNext,
 }: {
   detail: RunCaseDetail;
+  projectId: string;
+  currentUserId: string;
   status: TestStatus;
   direction: "next" | "prev";
   canExecute: boolean;
@@ -438,6 +455,11 @@ function CasePanel({
                       <span className="font-medium">Actual:</span> {result.actualResult}
                     </p>
                   )}
+                  {result.attachments.length > 0 && (
+                    <div className="mt-2">
+                      <AttachmentGallery items={result.attachments} readOnly />
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -477,6 +499,19 @@ function CasePanel({
             <div>
               <Label htmlFor="result-defect" className="mb-1.5">Defect reference</Label>
               <Input id="result-defect" placeholder="SHOP-123 or a URL" className="rounded-xl" value={draft.defectRef} onChange={(event) => update({ defectRef: event.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <AttachmentGallery
+                items={draft.attachments}
+                currentUserId={currentUserId}
+                onDeleted={(id) => setDraft((current) => saveDraft(detail.id, { ...current, attachments: current.attachments.filter((attachment) => attachment.id !== id) }))}
+              />
+              <FileUploader
+                projectId={projectId}
+                pasteTarget
+                hint="Drop or paste a screenshot, or click"
+                onUploaded={(attachment) => setDraft((current) => saveDraft(detail.id, { ...current, attachments: [...current.attachments, attachment] }))}
+              />
             </div>
           </GlassCard>
         )}

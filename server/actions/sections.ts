@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireProjectAccess } from "@/lib/auth/project-access";
 import { db } from "@/lib/db";
 import { logActivity } from "@/lib/db/activity";
+import { removeAttachmentsOfCases } from "@/lib/db/attachments";
 import { ActionError, runAction } from "@/lib/utils/action";
 import { moveSectionInList, sectionSubtreeIds } from "@/lib/utils/tree";
 import { getSections } from "@/server/queries/cases";
@@ -71,6 +72,9 @@ export async function deleteSection(projectId: string, sectionId: string) {
     const { user } = await requireProjectAccess(projectId, "case:manage");
     const section = await db.section.findFirst({ where: { id: id.parse(sectionId), projectId }, select: { name: true } });
     if (!section) throw new ActionError("That section no longer exists.");
+    const sectionIds = sectionSubtreeIds(await getSections(projectId), sectionId);
+    const cases = await db.testCase.findMany({ where: { sectionId: { in: sectionIds } }, select: { id: true } });
+    await removeAttachmentsOfCases(cases.map((testCase) => testCase.id));
     // Nested sections and their cases go with it through the schema's cascades.
     await db.section.delete({ where: { id: sectionId }, select: { id: true } });
     await logActivity(db, { projectId, userId: user.id, action: "deleted", entityType: "section", entityId: sectionId, meta: { name: section.name } });

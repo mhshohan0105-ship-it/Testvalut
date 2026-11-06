@@ -104,7 +104,7 @@ export async function recordResult(input: RecordResultInput) {
     const { user, run } = await requireActiveRun(runCase.runId, "result:create");
 
     await db.$transaction(async (tx) => {
-      await tx.testResult.create({
+      const result = await tx.testResult.create({
         data: {
           runCaseId: values.runCaseId,
           status: values.status,
@@ -117,6 +117,12 @@ export async function recordResult(input: RecordResultInput) {
         },
         select: { id: true },
       });
+      if (values.attachmentIds.length) {
+        await tx.attachment.updateMany({
+          where: { id: { in: values.attachmentIds }, projectId: run.projectId, uploadedById: user.id, testCaseId: null, testResultId: null },
+          data: { testResultId: result.id },
+        });
+      }
       await tx.testRunCase.update({ where: { id: values.runCaseId }, data: { currentStatus: values.status }, select: { id: true } });
       // Passes would flood the feed, so only results that need attention are logged.
       if (values.status === "FAILED" || values.status === "BLOCKED") {

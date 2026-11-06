@@ -47,6 +47,7 @@ export default async function NewCasePage({ searchParams }: { searchParams: Prom
 
   return (
     <CaseForm
+      currentUserId={user.id}
       projectId={activeProject.id}
       sections={sections}
       initial={{
